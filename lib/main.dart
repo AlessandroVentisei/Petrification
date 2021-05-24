@@ -25,7 +25,7 @@ class MyHomePage extends StatefulWidget {
 class _MyHomePageState extends State<MyHomePage> {
   List<Offset> points = <Offset>[];
   List<Color> colors = <Color>[];
-  Color color;
+  Color color = Colors.black;
   double strokeWidth = 5.0;
 
   final _transformationController = TransformationController();
@@ -53,9 +53,6 @@ class _MyHomePageState extends State<MyHomePage> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      // appBar: AppBar(
-      //   title: Text("Drawing App"),
-      // ),
       body: Stack(
         children: [
           InteractiveViewer(
@@ -65,15 +62,7 @@ class _MyHomePageState extends State<MyHomePage> {
                 setState(() {
                   RenderBox box = context.findRenderObject();
                   Offset point;
-                  if (_transformationController.value != Matrix4.identity()) {
-                    final position = _doubleTapDetails.localPosition;
-                    point = box.globalToLocal(details.globalPosition).translate(0, 0);
-                    double distance = (position - point).distance;
-                    double direction = (position - point).direction;
-                    point = point.translate(distance / direction, distance / direction);
-                  } else {
-                    point = box.globalToLocal(details.globalPosition);
-                  }
+                  point = box.globalToLocal(details.globalPosition);
                   points = List.from(points)..add(point);
                   colors = List.from(colors)..add(color ?? Colors.redAccent);
                   print(point.toString());
@@ -102,95 +91,8 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Positioned(
-            top: 100.0,
-            bottom: 0.0,
-            right: 10.0,
-            child: Column(
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.redAccent,
-                    child: Container(),
-                    onPressed: () {
-                      color = Colors.redAccent;
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.blueAccent,
-                    child: Container(),
-                    onPressed: () {
-                      color = Colors.blueAccent;
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.deepOrange,
-                    child: Container(),
-                    onPressed: () {
-                      color = Colors.deepOrange;
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.green,
-                    child: Container(),
-                    onPressed: () {
-                      color = Colors.green;
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.lightBlue,
-                    child: Container(),
-                    onPressed: () {
-                      color = Colors.lightBlue;
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.black,
-                    child: Container(),
-                    onPressed: () {
-                      color = Colors.black;
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.white,
-                    child: Container(),
-                    onPressed: () {
-                      color = Colors.white;
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
             bottom: 100.0,
-            left: 10.0,
+            right: 10.0,
             child: Column(
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
@@ -231,6 +133,106 @@ class _MyHomePageState extends State<MyHomePage> {
                       height: 20.0,
                       decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20.0)),
                     ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            top: 100.0,
+            right: 10.0,
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.start,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: Colors.redAccent,
+                    child: Container(),
+                    onPressed: () {
+                      setState(() {
+                        color = Colors.redAccent;
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: Colors.blueAccent,
+                    child: Container(),
+                    onPressed: () {
+                      setState(() {
+                        color = Colors.blueAccent;
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: Colors.deepOrange,
+                    child: Container(),
+                    onPressed: () {
+                      setState(() {
+                        color = Colors.deepOrange;
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: Colors.green,
+                    child: Container(),
+                    onPressed: () {
+                      setState(() {
+                        color = Colors.green;
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: Colors.lightBlue,
+                    child: Container(),
+                    onPressed: () {
+                      setState(() {
+                        color = Colors.lightBlue;
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: Colors.black,
+                    child: Container(),
+                    onPressed: () {
+                      setState(() {
+                        color = Colors.black;
+                      });
+                    },
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(4.0),
+                  child: FloatingActionButton(
+                    mini: true,
+                    backgroundColor: Colors.white,
+                    child: Container(),
+                    onPressed: () {
+                      setState(() {
+                        color = Colors.white;
+                      });
+                    },
                   ),
                 ),
               ],
