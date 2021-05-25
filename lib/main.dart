@@ -81,10 +81,10 @@ class _MyHomePageState extends State<MyHomePage> {
                 print(details);
               },
               onInteractionUpdate: (details) {
-                if (details.pointerCount > 1 && details.scale > 1.0) {
+                if (details.pointerCount > 1) {
                   _transformationController.value = Matrix4.identity()
                     ..translate(-details.focalPoint.dx * 2, -details.focalPoint.dy * 2)
-                    ..scale(3.0);
+                    ..scale(details.scale);
                   return;
                 }
 
