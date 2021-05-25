@@ -55,25 +55,54 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: Stack(
         children: [
-          InteractiveViewer(
-            transformationController: _transformationController,
-            child: GestureDetector(
-              onPanUpdate: (DragUpdateDetails details) {
+          GestureDetector(
+            // onPanUpdate: (DragUpdateDetails details) {
+            //   setState(() {
+            //     RenderBox box = context.findRenderObject();
+            //     Offset point;
+            //     if (_transformationController.value == Matrix4.identity()) {
+            //       point = box.globalToLocal(details.globalPosition);
+            //     } else {
+            //       point = _transformationController.toScene(details.globalPosition);
+            //     }
+            //     points = List.from(points)..add(point);
+            //     colors = List.from(colors)..add(color ?? Colors.redAccent);
+            //   });
+            // },
+            // onPanEnd: (DragEndDetails details) {
+            //   points.add(null);
+            //   colors.add(null);
+            // },
+            onDoubleTapDown: _handleDoubleTapDown,
+            onDoubleTap: _handleDoubleTap,
+            child: InteractiveViewer(
+              transformationController: _transformationController,
+              onInteractionStart: (details) {
+                print(details);
+              },
+              onInteractionUpdate: (details) {
+                if (details.pointerCount > 1 && details.scale > 1.0) {
+                  _transformationController.value = Matrix4.identity()
+                    ..translate(-details.focalPoint.dx * 2, -details.focalPoint.dy * 2)
+                    ..scale(3.0);
+                  return;
+                }
+
                 setState(() {
-                  RenderBox box = context.findRenderObject();
                   Offset point;
-                  point = box.globalToLocal(details.globalPosition);
+                  if (_transformationController.value == Matrix4.identity()) {
+                    point = details.focalPoint;
+                  } else {
+                    point = _transformationController.toScene(details.localFocalPoint);
+                  }
                   points = List.from(points)..add(point);
                   colors = List.from(colors)..add(color ?? Colors.redAccent);
-                  print(point.toString());
                 });
               },
-              onPanEnd: (DragEndDetails details) {
+              onInteractionEnd: (details) {
                 points.add(null);
                 colors.add(null);
               },
-              onDoubleTapDown: _handleDoubleTapDown,
-              onDoubleTap: _handleDoubleTap,
               child: Container(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
