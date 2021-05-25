@@ -1,4 +1,9 @@
+import 'dart:typed_data';
+import 'dart:ui' as ui;
+
 import 'package:flutter/material.dart';
+import 'package:flutter/rendering.dart';
+import 'package:image_gallery_saver/image_gallery_saver.dart';
 
 void main() {
   runApp(MyApp());
@@ -23,10 +28,38 @@ class MyHomePage extends StatefulWidget {
 }
 
 class _MyHomePageState extends State<MyHomePage> {
+  GlobalKey _globalKey = new GlobalKey();
   List<Offset> points = <Offset>[];
   List<Color> colors = <Color>[];
+  List<double> strokes = [];
   Color color = Colors.black;
   double strokeWidth = 5.0;
+
+  Future<void> _save() async {
+    // try {
+    RenderRepaintBoundary boundary = _globalKey.currentContext.findRenderObject() as RenderRepaintBoundary;
+    ui.Image image = await boundary.toImage();
+    ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+    Uint8List pngBytes = byteData.buffer.asUint8List();
+    var something = await ImageGallerySaver.saveImage(
+      pngBytes,
+      quality: 100,
+      name: DateTime.now().toIso8601String() + ".png",
+      isReturnImagePathOfIOS: true,
+    );
+
+    // } catch (e) {
+    //   print(e);
+    // }
+  }
+
+  Future<void> _clear() async {
+    points = [];
+    colors = [];
+    strokes = [];
+
+    setState(() {});
+  }
 
   final _transformationController = TransformationController();
   TapDownDetails _doubleTapDetails;
@@ -56,53 +89,29 @@ class _MyHomePageState extends State<MyHomePage> {
       body: Stack(
         children: [
           GestureDetector(
-            // onPanUpdate: (DragUpdateDetails details) {
-            //   setState(() {
-            //     RenderBox box = context.findRenderObject();
-            //     Offset point;
-            //     if (_transformationController.value == Matrix4.identity()) {
-            //       point = box.globalToLocal(details.globalPosition);
-            //     } else {
-            //       point = _transformationController.toScene(details.globalPosition);
-            //     }
-            //     points = List.from(points)..add(point);
-            //     colors = List.from(colors)..add(color ?? Colors.redAccent);
-            //   });
-            // },
-            // onPanEnd: (DragEndDetails details) {
-            //   points.add(null);
-            //   colors.add(null);
-            // },
+            onPanUpdate: (DragUpdateDetails details) {
+              setState(() {
+                RenderBox box = context.findRenderObject();
+                Offset point;
+                if (_transformationController.value == Matrix4.identity()) {
+                  point = box.globalToLocal(details.globalPosition);
+                } else {
+                  point = _transformationController.toScene(details.globalPosition);
+                }
+                points = List.from(points)..add(point);
+                colors = List.from(colors)..add(color ?? Colors.redAccent);
+                strokes = List.from(strokes)..add(strokeWidth ?? 5.0);
+              });
+            },
+            onPanEnd: (DragEndDetails details) {
+              points.add(null);
+              colors.add(null);
+              strokes.add(null);
+            },
             onDoubleTapDown: _handleDoubleTapDown,
             onDoubleTap: _handleDoubleTap,
-            child: InteractiveViewer(
-              transformationController: _transformationController,
-              onInteractionStart: (details) {
-                print(details);
-              },
-              onInteractionUpdate: (details) {
-                if (details.pointerCount > 1) {
-                  _transformationController.value = Matrix4.identity()
-                    ..translate(-details.focalPoint.dx * 2, -details.focalPoint.dy * 2)
-                    ..scale(details.scale);
-                  return;
-                }
-
-                setState(() {
-                  Offset point;
-                  if (_transformationController.value == Matrix4.identity()) {
-                    point = details.focalPoint;
-                  } else {
-                    point = _transformationController.toScene(details.localFocalPoint);
-                  }
-                  points = List.from(points)..add(point);
-                  colors = List.from(colors)..add(color ?? Colors.redAccent);
-                });
-              },
-              onInteractionEnd: (details) {
-                points.add(null);
-                colors.add(null);
-              },
+            child: RepaintBoundary(
+              key: _globalKey,
               child: Container(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
@@ -113,7 +122,7 @@ class _MyHomePageState extends State<MyHomePage> {
                   painter: Sketcher(
                     points: points,
                     colors: colors,
-                    strokeWidth: strokeWidth,
+                    strokes: strokes,
                   ),
                 ),
               ),
@@ -123,6 +132,7 @@ class _MyHomePageState extends State<MyHomePage> {
             bottom: 100.0,
             right: 10.0,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
                 GestureDetector(
@@ -168,11 +178,38 @@ class _MyHomePageState extends State<MyHomePage> {
             ),
           ),
           Positioned(
-            top: 100.0,
+            top: 40.0,
             right: 10.0,
             child: Column(
+              crossAxisAlignment: CrossAxisAlignment.center,
               mainAxisAlignment: MainAxisAlignment.start,
               children: [
+                GestureDetector(
+                  onTap: _clear,
+                  child: CircleAvatar(
+                    child: Icon(
+                      Icons.create,
+                      size: 20.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Divider(
+                  height: 10.0,
+                ),
+                GestureDetector(
+                  onTap: _save,
+                  child: CircleAvatar(
+                    child: Icon(
+                      Icons.save,
+                      size: 20.0,
+                      color: Colors.white,
+                    ),
+                  ),
+                ),
+                Divider(
+                  height: 20.0,
+                ),
                 Padding(
                   padding: const EdgeInsets.all(4.0),
                   child: FloatingActionButton(
@@ -276,20 +313,21 @@ class _MyHomePageState extends State<MyHomePage> {
 class Sketcher extends CustomPainter {
   final List<Offset> points;
   final List<Color> colors;
-  final double strokeWidth;
+  final List<double> strokes;
 
-  Sketcher({this.strokeWidth, this.points, this.colors});
+  Sketcher({this.strokes, this.points, this.colors});
 
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
       ..color = Colors.redAccent
       ..strokeCap = StrokeCap.round
-      ..strokeWidth = strokeWidth;
+      ..strokeWidth = 5.0;
 
     for (int i = 0; i < points.length - 1; ++i) {
       if (points[i] != null && points[i + 1] != null && colors[i] != null) {
         paint.color = colors[i];
+        paint.strokeWidth = strokes[i];
         canvas.drawLine(points[i], points[i + 1], paint);
       }
     }
