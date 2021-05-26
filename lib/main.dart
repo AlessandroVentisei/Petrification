@@ -1,3 +1,4 @@
+import 'dart:async';
 import 'dart:typed_data';
 import 'dart:ui' as ui;
 
@@ -29,58 +30,37 @@ class MyHomePage extends StatefulWidget {
 
 class _MyHomePageState extends State<MyHomePage> {
   GlobalKey _globalKey = new GlobalKey();
-  List<Offset> points = <Offset>[];
-  List<Color> colors = <Color>[];
-  List<double> strokes = [];
-  Color color = Colors.black;
-  double strokeWidth = 5.0;
+  List<DrawnLine> lines = <DrawnLine>[];
+  DrawnLine line;
+  Color selectedColor = Colors.black;
+  double selectedWidth = 5.0;
+
+  StreamController<List<DrawnLine>> linesStreamController = StreamController<List<DrawnLine>>.broadcast();
+  StreamController<DrawnLine> currentLineStreamController = StreamController<DrawnLine>.broadcast();
 
   Future<void> _save() async {
-    // try {
-    RenderRepaintBoundary boundary = _globalKey.currentContext.findRenderObject() as RenderRepaintBoundary;
-    ui.Image image = await boundary.toImage();
-    ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
-    Uint8List pngBytes = byteData.buffer.asUint8List();
-    var something = await ImageGallerySaver.saveImage(
-      pngBytes,
-      quality: 100,
-      name: DateTime.now().toIso8601String() + ".png",
-      isReturnImagePathOfIOS: true,
-    );
-
-    // } catch (e) {
-    //   print(e);
-    // }
+    try {
+      RenderRepaintBoundary boundary = _globalKey.currentContext.findRenderObject() as RenderRepaintBoundary;
+      ui.Image image = await boundary.toImage();
+      ByteData byteData = await image.toByteData(format: ui.ImageByteFormat.png);
+      Uint8List pngBytes = byteData.buffer.asUint8List();
+      var saved = await ImageGallerySaver.saveImage(
+        pngBytes,
+        quality: 100,
+        name: DateTime.now().toIso8601String() + ".png",
+        isReturnImagePathOfIOS: true,
+      );
+      print(saved);
+    } catch (e) {
+      print(e);
+    }
   }
 
   Future<void> _clear() async {
-    points = [];
-    colors = [];
-    strokes = [];
-
-    setState(() {});
-  }
-
-  final _transformationController = TransformationController();
-  TapDownDetails _doubleTapDetails;
-
-  void _handleDoubleTapDown(TapDownDetails details) {
-    _doubleTapDetails = details;
-  }
-
-  void _handleDoubleTap() {
-    if (_transformationController.value != Matrix4.identity()) {
-      _transformationController.value = Matrix4.identity();
-    } else {
-      final position = _doubleTapDetails.localPosition;
-      // For a 3x zoom
-      _transformationController.value = Matrix4.identity()
-        ..translate(-position.dx * 2, -position.dy * 2)
-        ..scale(3.0);
-      // Fox a 2x zoom
-      // ..translate(-position.dx, -position.dy)
-      // ..scale(2.0);
-    }
+    setState(() {
+      lines = [];
+      line = null;
+    });
   }
 
   @override
@@ -88,43 +68,65 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: Stack(
         children: [
+          RepaintBoundary(
+            key: _globalKey,
+            child: Container(
+              width: MediaQuery.of(context).size.width,
+              height: MediaQuery.of(context).size.height,
+              padding: EdgeInsets.all(4.0),
+              alignment: Alignment.topLeft,
+              color: Colors.yellow[50],
+              child: StreamBuilder<List<DrawnLine>>(
+                stream: linesStreamController.stream,
+                builder: (context, snapshot) {
+                  return CustomPaint(
+                    painter: Sketcher(
+                      lines: lines,
+                    ),
+                  );
+                },
+              ),
+            ),
+          ),
           GestureDetector(
+            onPanStart: (DragStartDetails details) {
+              RenderBox box = context.findRenderObject();
+              Offset point;
+
+              point = box.globalToLocal(details.globalPosition);
+              line = DrawnLine([point], selectedColor, selectedWidth);
+            },
             onPanUpdate: (DragUpdateDetails details) {
-              setState(() {
-                RenderBox box = context.findRenderObject();
-                Offset point;
-                if (_transformationController.value == Matrix4.identity()) {
-                  point = box.globalToLocal(details.globalPosition);
-                } else {
-                  point = _transformationController.toScene(details.globalPosition);
-                }
-                points = List.from(points)..add(point);
-                colors = List.from(colors)..add(color ?? Colors.redAccent);
-                strokes = List.from(strokes)..add(strokeWidth ?? 5.0);
-              });
+              RenderBox box = context.findRenderObject();
+              Offset point;
+
+              point = box.globalToLocal(details.globalPosition);
+
+              List<Offset> path = List.from(line.path)..add(point);
+              line = DrawnLine(path, selectedColor, selectedWidth);
+              currentLineStreamController.add(line);
             },
             onPanEnd: (DragEndDetails details) {
-              points.add(null);
-              colors.add(null);
-              strokes.add(null);
+              lines = List.from(lines)..add(line);
+
+              linesStreamController.add(lines);
             },
-            onDoubleTapDown: _handleDoubleTapDown,
-            onDoubleTap: _handleDoubleTap,
             child: RepaintBoundary(
-              key: _globalKey,
               child: Container(
                 width: MediaQuery.of(context).size.width,
                 height: MediaQuery.of(context).size.height,
                 padding: EdgeInsets.all(4.0),
                 alignment: Alignment.topLeft,
-                color: Colors.yellow[50],
-                child: CustomPaint(
-                  painter: Sketcher(
-                    points: points,
-                    colors: colors,
-                    strokes: strokes,
-                  ),
-                ),
+                color: Colors.transparent,
+                child: StreamBuilder<DrawnLine>(
+                    stream: currentLineStreamController.stream,
+                    builder: (context, snapshot) {
+                      return CustomPaint(
+                        painter: Sketcher(
+                          lines: [line],
+                        ),
+                      );
+                    }),
               ),
             ),
           ),
@@ -137,40 +139,40 @@ class _MyHomePageState extends State<MyHomePage> {
               children: [
                 GestureDetector(
                   onTap: () {
-                    strokeWidth = 5.0;
+                    selectedWidth = 5.0;
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Container(
                       width: 12.0,
                       height: 12.0,
-                      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(12.0)),
+                      decoration: BoxDecoration(color: selectedColor, borderRadius: BorderRadius.circular(12.0)),
                     ),
                   ),
                 ),
                 GestureDetector(
                   onTap: () {
-                    strokeWidth = 10.0;
+                    selectedWidth = 10.0;
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Container(
                       width: 16.0,
                       height: 16.0,
-                      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(16.0)),
+                      decoration: BoxDecoration(color: selectedColor, borderRadius: BorderRadius.circular(16.0)),
                     ),
                   ),
                 ),
                 GestureDetector(
                   onTap: () {
-                    strokeWidth = 15.0;
+                    selectedWidth = 15.0;
                   },
                   child: Padding(
                     padding: const EdgeInsets.all(4.0),
                     child: Container(
                       width: 20.0,
                       height: 20.0,
-                      decoration: BoxDecoration(color: color, borderRadius: BorderRadius.circular(20.0)),
+                      decoration: BoxDecoration(color: selectedColor, borderRadius: BorderRadius.circular(20.0)),
                     ),
                   ),
                 ),
@@ -218,7 +220,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Container(),
                     onPressed: () {
                       setState(() {
-                        color = Colors.redAccent;
+                        selectedColor = Colors.redAccent;
                       });
                     },
                   ),
@@ -231,7 +233,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Container(),
                     onPressed: () {
                       setState(() {
-                        color = Colors.blueAccent;
+                        selectedColor = Colors.blueAccent;
                       });
                     },
                   ),
@@ -244,7 +246,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Container(),
                     onPressed: () {
                       setState(() {
-                        color = Colors.deepOrange;
+                        selectedColor = Colors.deepOrange;
                       });
                     },
                   ),
@@ -257,7 +259,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Container(),
                     onPressed: () {
                       setState(() {
-                        color = Colors.green;
+                        selectedColor = Colors.green;
                       });
                     },
                   ),
@@ -270,7 +272,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Container(),
                     onPressed: () {
                       setState(() {
-                        color = Colors.lightBlue;
+                        selectedColor = Colors.lightBlue;
                       });
                     },
                   ),
@@ -283,7 +285,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Container(),
                     onPressed: () {
                       setState(() {
-                        color = Colors.black;
+                        selectedColor = Colors.black;
                       });
                     },
                   ),
@@ -296,7 +298,7 @@ class _MyHomePageState extends State<MyHomePage> {
                     child: Container(),
                     onPressed: () {
                       setState(() {
-                        color = Colors.white;
+                        selectedColor = Colors.white;
                       });
                     },
                   ),
@@ -311,11 +313,9 @@ class _MyHomePageState extends State<MyHomePage> {
 }
 
 class Sketcher extends CustomPainter {
-  final List<Offset> points;
-  final List<Color> colors;
-  final List<double> strokes;
+  final List<DrawnLine> lines;
 
-  Sketcher({this.strokes, this.points, this.colors});
+  Sketcher({this.lines});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -324,17 +324,28 @@ class Sketcher extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5.0;
 
-    for (int i = 0; i < points.length - 1; ++i) {
-      if (points[i] != null && points[i + 1] != null && colors[i] != null) {
-        paint.color = colors[i];
-        paint.strokeWidth = strokes[i];
-        canvas.drawLine(points[i], points[i + 1], paint);
+    for (int i = 0; i < lines.length; ++i) {
+      if (lines[i] == null) continue;
+      for (int j = 0; j < lines[i].path.length - 1; ++j) {
+        if (lines[i].path[j] != null && lines[i].path[j + 1] != null) {
+          paint.color = lines[i].color;
+          paint.strokeWidth = lines[i].width;
+          canvas.drawLine(lines[i].path[j], lines[i].path[j + 1], paint);
+        }
       }
     }
   }
 
   @override
   bool shouldRepaint(Sketcher oldDelegate) {
-    return oldDelegate.points != points;
+    return true;
   }
+}
+
+class DrawnLine {
+  final List<Offset> path;
+  final Color color;
+  final double width;
+
+  DrawnLine(this.path, this.color, this.width);
 }
