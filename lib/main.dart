@@ -14,7 +14,7 @@ class MyApp extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return MaterialApp(
-      title: 'Flutter Demo',
+      title: 'Drawing App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
@@ -38,7 +38,7 @@ class _MyHomePageState extends State<MyHomePage> {
   StreamController<List<DrawnLine>> linesStreamController = StreamController<List<DrawnLine>>.broadcast();
   StreamController<DrawnLine> currentLineStreamController = StreamController<DrawnLine>.broadcast();
 
-  Future<void> _save() async {
+  Future<void> save() async {
     try {
       RenderRepaintBoundary boundary = _globalKey.currentContext.findRenderObject() as RenderRepaintBoundary;
       ui.Image image = await boundary.toImage();
@@ -56,7 +56,7 @@ class _MyHomePageState extends State<MyHomePage> {
     }
   }
 
-  Future<void> _clear() async {
+  Future<void> clear() async {
     setState(() {
       lines = [];
       line = null;
@@ -68,245 +68,188 @@ class _MyHomePageState extends State<MyHomePage> {
     return Scaffold(
       body: Stack(
         children: [
-          RepaintBoundary(
-            key: _globalKey,
-            child: Container(
-              width: MediaQuery.of(context).size.width,
-              height: MediaQuery.of(context).size.height,
-              padding: EdgeInsets.all(4.0),
-              alignment: Alignment.topLeft,
-              color: Colors.yellow[50],
-              child: StreamBuilder<List<DrawnLine>>(
-                stream: linesStreamController.stream,
-                builder: (context, snapshot) {
-                  return CustomPaint(
-                    painter: Sketcher(
-                      lines: lines,
-                    ),
-                  );
-                },
-              ),
-            ),
-          ),
-          GestureDetector(
-            onPanStart: (DragStartDetails details) {
-              RenderBox box = context.findRenderObject();
-              Offset point;
-
-              point = box.globalToLocal(details.globalPosition);
-              line = DrawnLine([point], selectedColor, selectedWidth);
-            },
-            onPanUpdate: (DragUpdateDetails details) {
-              RenderBox box = context.findRenderObject();
-              Offset point;
-
-              point = box.globalToLocal(details.globalPosition);
-
-              List<Offset> path = List.from(line.path)..add(point);
-              line = DrawnLine(path, selectedColor, selectedWidth);
-              currentLineStreamController.add(line);
-            },
-            onPanEnd: (DragEndDetails details) {
-              lines = List.from(lines)..add(line);
-
-              linesStreamController.add(lines);
-            },
-            child: RepaintBoundary(
-              child: Container(
-                width: MediaQuery.of(context).size.width,
-                height: MediaQuery.of(context).size.height,
-                padding: EdgeInsets.all(4.0),
-                alignment: Alignment.topLeft,
-                color: Colors.transparent,
-                child: StreamBuilder<DrawnLine>(
-                    stream: currentLineStreamController.stream,
-                    builder: (context, snapshot) {
-                      return CustomPaint(
-                        painter: Sketcher(
-                          lines: [line],
-                        ),
-                      );
-                    }),
-              ),
-            ),
-          ),
-          Positioned(
-            bottom: 100.0,
-            right: 10.0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: () {
-                    selectedWidth = 5.0;
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Container(
-                      width: 12.0,
-                      height: 12.0,
-                      decoration: BoxDecoration(color: selectedColor, borderRadius: BorderRadius.circular(12.0)),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    selectedWidth = 10.0;
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Container(
-                      width: 16.0,
-                      height: 16.0,
-                      decoration: BoxDecoration(color: selectedColor, borderRadius: BorderRadius.circular(16.0)),
-                    ),
-                  ),
-                ),
-                GestureDetector(
-                  onTap: () {
-                    selectedWidth = 15.0;
-                  },
-                  child: Padding(
-                    padding: const EdgeInsets.all(4.0),
-                    child: Container(
-                      width: 20.0,
-                      height: 20.0,
-                      decoration: BoxDecoration(color: selectedColor, borderRadius: BorderRadius.circular(20.0)),
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-          Positioned(
-            top: 40.0,
-            right: 10.0,
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.center,
-              mainAxisAlignment: MainAxisAlignment.start,
-              children: [
-                GestureDetector(
-                  onTap: _clear,
-                  child: CircleAvatar(
-                    child: Icon(
-                      Icons.create,
-                      size: 20.0,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Divider(
-                  height: 10.0,
-                ),
-                GestureDetector(
-                  onTap: _save,
-                  child: CircleAvatar(
-                    child: Icon(
-                      Icons.save,
-                      size: 20.0,
-                      color: Colors.white,
-                    ),
-                  ),
-                ),
-                Divider(
-                  height: 20.0,
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.redAccent,
-                    child: Container(),
-                    onPressed: () {
-                      setState(() {
-                        selectedColor = Colors.redAccent;
-                      });
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.blueAccent,
-                    child: Container(),
-                    onPressed: () {
-                      setState(() {
-                        selectedColor = Colors.blueAccent;
-                      });
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.deepOrange,
-                    child: Container(),
-                    onPressed: () {
-                      setState(() {
-                        selectedColor = Colors.deepOrange;
-                      });
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.green,
-                    child: Container(),
-                    onPressed: () {
-                      setState(() {
-                        selectedColor = Colors.green;
-                      });
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.lightBlue,
-                    child: Container(),
-                    onPressed: () {
-                      setState(() {
-                        selectedColor = Colors.lightBlue;
-                      });
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.black,
-                    child: Container(),
-                    onPressed: () {
-                      setState(() {
-                        selectedColor = Colors.black;
-                      });
-                    },
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.all(4.0),
-                  child: FloatingActionButton(
-                    mini: true,
-                    backgroundColor: Colors.white,
-                    child: Container(),
-                    onPressed: () {
-                      setState(() {
-                        selectedColor = Colors.white;
-                      });
-                    },
-                  ),
-                ),
-              ],
-            ),
-          ),
+          buildAllPaths(context),
+          buildCurrentPath(context),
+          buildStrokeToolbar(),
+          buildColorToolbar(),
         ],
+      ),
+    );
+  }
+
+  GestureDetector buildCurrentPath(BuildContext context) {
+    return GestureDetector(
+      onPanStart: onPanStart,
+      onPanUpdate: onPanUpdate,
+      onPanEnd: onPanEnd,
+      child: RepaintBoundary(
+        child: Container(
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          padding: EdgeInsets.all(4.0),
+          alignment: Alignment.topLeft,
+          color: Colors.transparent,
+          child: StreamBuilder<DrawnLine>(
+            stream: currentLineStreamController.stream,
+            builder: (context, snapshot) {
+              return CustomPaint(
+                painter: Sketcher(
+                  lines: [line],
+                ),
+              );
+            },
+          ),
+        ),
+      ),
+    );
+  }
+
+  RepaintBoundary buildAllPaths(BuildContext context) {
+    return RepaintBoundary(
+      key: _globalKey,
+      child: Container(
+        width: MediaQuery.of(context).size.width,
+        height: MediaQuery.of(context).size.height,
+        padding: EdgeInsets.all(4.0),
+        alignment: Alignment.topLeft,
+        color: Colors.yellow[50],
+        child: StreamBuilder<List<DrawnLine>>(
+          stream: linesStreamController.stream,
+          builder: (context, snapshot) {
+            return CustomPaint(
+              painter: Sketcher(
+                lines: lines,
+              ),
+            );
+          },
+        ),
+      ),
+    );
+  }
+
+  onPanStart(DragStartDetails details) {
+    RenderBox box = context.findRenderObject();
+    Offset point;
+
+    point = box.globalToLocal(details.globalPosition);
+    line = DrawnLine([point], selectedColor, selectedWidth);
+  }
+
+  onPanUpdate(DragUpdateDetails details) {
+    RenderBox box = context.findRenderObject();
+    Offset point;
+
+    point = box.globalToLocal(details.globalPosition);
+
+    List<Offset> path = List.from(line.path)..add(point);
+    line = DrawnLine(path, selectedColor, selectedWidth);
+    currentLineStreamController.add(line);
+  }
+
+  onPanEnd(DragEndDetails details) {
+    lines = List.from(lines)..add(line);
+
+    linesStreamController.add(lines);
+  }
+
+  Positioned buildStrokeToolbar() {
+    return Positioned(
+      bottom: 100.0,
+      right: 10.0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          buildStrokeButton(5.0),
+          buildStrokeButton(10.0),
+          buildStrokeButton(15.0),
+        ],
+      ),
+    );
+  }
+
+  GestureDetector buildStrokeButton(double strokeWidth) {
+    return GestureDetector(
+      onTap: () {
+        selectedWidth = strokeWidth;
+      },
+      child: Padding(
+        padding: const EdgeInsets.all(4.0),
+        child: Container(
+          width: strokeWidth * 2,
+          height: strokeWidth * 2,
+          decoration: BoxDecoration(color: selectedColor, borderRadius: BorderRadius.circular(12.0)),
+        ),
+      ),
+    );
+  }
+
+  Positioned buildColorToolbar() {
+    return Positioned(
+      top: 40.0,
+      right: 10.0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          buildClearButton(),
+          Divider(
+            height: 10.0,
+          ),
+          buildSaveButton(),
+          Divider(
+            height: 20.0,
+          ),
+          buildColorButton(Colors.red),
+          buildColorButton(Colors.blueAccent),
+          buildColorButton(Colors.deepOrange),
+          buildColorButton(Colors.green),
+          buildColorButton(Colors.lightBlue),
+          buildColorButton(Colors.black),
+          buildColorButton(Colors.white),
+        ],
+      ),
+    );
+  }
+
+  Padding buildColorButton(Color color) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: FloatingActionButton(
+        mini: true,
+        backgroundColor: Colors.redAccent,
+        child: Container(),
+        onPressed: () {
+          setState(() {
+            selectedColor = color;
+          });
+        },
+      ),
+    );
+  }
+
+  GestureDetector buildSaveButton() {
+    return GestureDetector(
+      onTap: save,
+      child: CircleAvatar(
+        child: Icon(
+          Icons.save,
+          size: 20.0,
+          color: Colors.white,
+        ),
+      ),
+    );
+  }
+
+  GestureDetector buildClearButton() {
+    return GestureDetector(
+      onTap: clear,
+      child: CircleAvatar(
+        child: Icon(
+          Icons.create,
+          size: 20.0,
+          color: Colors.white,
+        ),
       ),
     );
   }
