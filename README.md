@@ -1,6 +1,6 @@
 # drawing_app
 
-A new Flutter application.
+Flutter application for building and simulating Petri-Nets.
 
 ## Getting Started
 
