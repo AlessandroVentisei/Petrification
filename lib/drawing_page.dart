@@ -181,7 +181,10 @@ class _DrawingPageState extends State<DrawingPage> {
       line = DrawnLine(line.path, selectedColor, selectedShape, selectedWidth);
       lines = List.from(lines)..add(line);
       if (conflictTest(lines) == false) {
-        lines = List.from(lines)..removeLast();
+        setState(() {
+          lines.removeLast();
+          line = null;
+        });
       } else {
         linesStreamController.add(lines);
       }
