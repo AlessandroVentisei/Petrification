@@ -9,10 +9,17 @@ class DrawnLine {
   DrawnLine(this.path, this.color, this.shape, this.width);
 }
 
-class Arc {
+//DrawnPoint for places and transitions, and DrawnArc for arcs only
+class DrawnPoint {
+  final Offset point;
+  final String shape;
+  final Color color;
+  DrawnPoint(this.point, this.shape, this.color);
+}
+
+class DrawnArc {
   final Offset point1;
   final Offset point2;
   final Color color;
-  final double width;
-  Arc(this.point1, this.point2, this.color, this.width);
+  DrawnArc(this.point1, this.point2, this.color);
 }

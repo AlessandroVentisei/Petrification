@@ -2,11 +2,13 @@ import 'dart:ui';
 
 import 'package:drawing_app/drawn_line.dart';
 import 'package:flutter/material.dart';
+import 'package:arrow_path/arrow_path.dart';
 
 class Sketcher extends CustomPainter {
-  final List<DrawnLine> lines;
+  final List<DrawnPoint> points;
+  final List<DrawnArc> arcs;
 
-  Sketcher({this.lines});
+  Sketcher({this.points, this.arcs});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -14,43 +16,55 @@ class Sketcher extends CustomPainter {
       ..color = Colors.redAccent
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5.0;
-    for (int i = 0; i < lines.length; ++i) {
-      if (lines[i] == null) continue;
-      paint.color = lines[i].color;
-      paint.strokeWidth = lines[i].width;
-      if (lines[i].shape == "Place") {
-        canvas.drawCircle(lines[i].path[0], lines[i].width, paint);
+    for (int i = 0; i < points.length; ++i) {
+      if (points[i] == null) continue;
+      paint.color = points[i].color;
+      paint.strokeWidth = 10;
+      if (points[i].shape == "Place") {
+        canvas.drawCircle(points[i].point, 10, paint);
         canvas.drawCircle(
-            lines[i].path[0],
-            (lines[i].width - 0.3 * (lines[i].width)),
-            paint..color = Colors.white);
+            points[i].point, (10 - 0.3 * (10)), paint..color = Colors.white);
       }
-      if (lines[i].shape == "Transition") {
+      if (points[i].shape == "Transition") {
+        canvas.drawRect(points[i].point - Offset(10, 10) & Size(20, 20), paint);
         canvas.drawRect(
-            lines[i].path[0] - Offset(7.5, 7.5) & Size(15, 15), paint);
-        canvas.drawRect(
-            lines[i].path[0] - Offset(7.5, 7.5) + Offset(2.5, 2.5) &
-                Size(10, 10),
+            points[i].point - Offset(10, 10) + Offset(2.5, 2.5) & Size(15, 15),
             paint..color = Colors.white);
-      }
-      if (lines[i].shape == "Arc") {
-        canvas.drawLine(lines[i].path[0], lines[i].path[1], paint);
-        canvas.drawPoints(
-            PointMode.polygon,
-            [
-              lines[i].path[1],
-              lines[i].path[1] + Offset(0, 10),
-              lines[i].path[1] + Offset(20, 0),
-              lines[i].path[1] + Offset(0, -10),
-              lines[i].path[1],
-            ],
-            paint);
       }
     }
   }
 
   @override
   bool shouldRepaint(Sketcher oldDelegate) {
+    return true;
+  }
+}
+
+class ArcSketcher extends CustomPainter {
+  final List<DrawnArc> arcs;
+
+  ArcSketcher({this.arcs});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Path path;
+    Paint paint = Paint()
+      ..strokeCap = StrokeCap.round
+      ..style = PaintingStyle.stroke
+      ..strokeCap = StrokeCap.round
+      ..strokeJoin = StrokeJoin.round
+      ..strokeWidth = 2.0;
+    for (int i = 0; i < arcs.length; ++i) {
+      if (arcs[i] == null) continue;
+      path = Path();
+      path.addPolygon([arcs[i].point1, arcs[i].point2], false);
+      path = ArrowPath.make(path: path, tipLength: 7.5);
+      canvas.drawPath(path, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(ArcSketcher oldDelegate) {
     return true;
   }
 }
