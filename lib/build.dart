@@ -15,10 +15,7 @@ class Building extends StatefulWidget {
 class BuildingState extends State<Building> {
   List<DrawnPoint> drawnPoints = <DrawnPoint>[];
   List<DrawnArc> drawnArcs = <DrawnArc>[];
-  List<Map<String, List>> matrices = [
-    {"places": []},
-    {"transitions": []}
-  ];
+  Map<String, dynamic> matrices = {"Place": 0, "Transition": 0};
   DrawnArc currentArc;
   Color selectedColor = Colors.black;
   String selectedShape;
@@ -163,8 +160,7 @@ class BuildingState extends State<Building> {
         currentArc = DrawnArc(point, point + Offset(5, 5), selectedColor);
         currentArcStreamController.add(currentArc);
       } else {
-        currentArc = DrawnArc(null, null, selectedColor);
-        //currentArcStreamController.add(currentArc);
+        currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor);
         return;
       }
     }
@@ -173,6 +169,10 @@ class BuildingState extends State<Building> {
         drawnPoints = List.from(drawnPoints)
           ..add(DrawnPoint(point, selectedShape, selectedColor));
         drawnPointsStreamController.add(drawnPoints);
+        setState(() {
+          matrices[selectedShape.toString()] =
+              matrices[selectedShape.toString()] + 1;
+        });
       }
     }
   }
@@ -198,10 +198,10 @@ class BuildingState extends State<Building> {
           drawnArcs = List.from(drawnArcs)..add(currentArc);
           drawnArcsStreamController.add(drawnArcs);
         } else {
-          currentArc = DrawnArc(null, null, selectedColor);
+          currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor);
           currentArcStreamController.add(currentArc);
         }
-      } on Error catch (error) {}
+      } on Error {}
     }
   }
 

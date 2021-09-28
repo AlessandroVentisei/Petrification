@@ -56,8 +56,10 @@ class ArcSketcher extends CustomPainter {
       ..strokeWidth = 2.0;
     for (int i = 0; i < arcs.length; ++i) {
       if (arcs[i] == null) continue;
+      if (arcs[i].point1 == Offset(0, 0) || arcs[i].point2 == Offset(0, 0))
+        continue;
       path = Path();
-      path.addPolygon([arcs[i].point1, arcs[i].point2], false);
+      path.addPolygon([arcs[i].point1, arcs[i].point2 + Offset(1, 0)], false);
       path = ArrowPath.make(path: path, tipLength: 7.5);
       canvas.drawPath(path, paint);
     }
