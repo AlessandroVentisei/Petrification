@@ -4,6 +4,7 @@ import './drawn_line.dart';
 import 'package:flutter/rendering.dart';
 import 'dart:async';
 import 'package:matrix2d/matrix2d.dart';
+import './difference_matrix_builder.dart';
 
 class Building extends StatefulWidget {
   @override
@@ -197,6 +198,8 @@ class BuildingState extends State<Building> {
               DrawnArc(currentArc.point1, currentArc.point2, selectedColor);
           drawnArcs = List.from(drawnArcs)..add(currentArc);
           drawnArcsStreamController.add(drawnArcs);
+          differenceMatrixBuilder(
+              matrices, selectedShape, drawnPoints, currentArc);
         } else {
           currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor);
           currentArcStreamController.add(currentArc);
