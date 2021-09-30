@@ -28,7 +28,7 @@ List<dynamic> differenceMatrixBuilderCurrentArc(matrices, selectedShape,
   //currentArc.point1 must = a drawnPoints.point
   loc = pointFinder(drawnPoints, currentArc);
   if (loc[2] == "Place") {
-    diffMatrixMinus[loc[0]][loc[1]] += 1;
+    diffMatrixMinus[loc[1]][loc[0]] += 1;
   }
   if (loc[2] == "Transition") {
     diffMatrixPlus[loc[0]][loc[1]] += 1;
