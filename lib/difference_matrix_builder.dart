@@ -1,27 +1,39 @@
-import 'package:flutter/material.dart';
 import 'package:matrix2d/matrix2d.dart';
 
-List<dynamic> differenceMatrixBuilder(
-    matrices, selectedShape, drawnPoints, currentArc) {
+//This is where the difference matrix is contructed after each arc is drawn.
+//Information on how this is done: https://www.techfak.uni-bielefeld.de/~mchen/BioPNML/Intro/MRPN.html
+//Essential to advancement of PN is the difference matrix, once confirmed it may be used for each advancement.
+
+List differenceMatrixBuilder(matrices, selectedShape, drawnArcs, drawnPoints) {
   Matrix2d m2d = Matrix2d();
   List<dynamic> diffMatrix =
       m2d.zeros(matrices["Place"], matrices["Transition"]);
-  List<dynamic> diffMatrixMinus = diffMatrix;
-  List<dynamic> diffMatrixPlus = diffMatrixMinus;
+  List<dynamic> diffMatrixPlus =
+      m2d.zeros(matrices["Place"], matrices["Transition"]);
+  List<dynamic> diffMatrixMinus =
+      m2d.zeros(matrices["Place"], matrices["Transition"]);
+
+  for (int i = 0; i < drawnArcs.length; i++) {
+    differenceMatrixBuilderCurrentArc(matrices, selectedShape, drawnPoints,
+        drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
+  }
+  diffMatrix = m2d.subtraction(diffMatrixPlus, diffMatrixMinus);
+  return diffMatrix;
+}
+
+List<dynamic> differenceMatrixBuilderCurrentArc(matrices, selectedShape,
+    drawnPoints, currentArc, diffMatrixPlus, diffMatrixMinus) {
   List<dynamic> loc;
   //This function will first compare the current arc to drawn places to find points connected.
   //currentArc.point1 must = a drawnPoints.point
   loc = pointFinder(drawnPoints, currentArc);
   if (loc[2] == "Place") {
-    diffMatrixMinus[loc[0]][loc[1]] = 1;
+    diffMatrixMinus[loc[0]][loc[1]] += 1;
   }
   if (loc[2] == "Transition") {
-    diffMatrixPlus[loc[0]][loc[1]] = 1;
+    diffMatrixPlus[loc[0]][loc[1]] += 1;
   }
-
-  //now return both matrices for storage, and import them for reuse...
-  diffMatrix = m2d.subtraction(diffMatrixPlus, diffMatrixMinus);
-  return diffMatrix;
+  return [diffMatrixMinus, diffMatrixPlus];
 }
 
 List<dynamic> pointFinder(drawnPoints, currentArc) {

@@ -198,8 +198,8 @@ class BuildingState extends State<Building> {
               DrawnArc(currentArc.point1, currentArc.point2, selectedColor);
           drawnArcs = List.from(drawnArcs)..add(currentArc);
           drawnArcsStreamController.add(drawnArcs);
-          differenceMatrixBuilder(
-              matrices, selectedShape, drawnPoints, currentArc);
+          List<dynamic> diffMatrix = differenceMatrixBuilder(
+              matrices, selectedShape, drawnArcs, drawnPoints);
         } else {
           currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor);
           currentArcStreamController.add(currentArc);
