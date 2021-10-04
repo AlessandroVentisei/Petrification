@@ -66,3 +66,17 @@ List<dynamic> pointFinder(drawnPoints, currentArc) {
   }
   return [outputPointer, inputPointer, outputShape];
 }
+
+int placeFinder(drawnPoints, currentPoint) {
+  int outputPointer = 0;
+  int numPlaces = 0;
+  for (int i = 0; i < drawnPoints.length; ++i) {
+    if (drawnPoints[i].shape == "Place") {
+      numPlaces += 1;
+      if (currentPoint == drawnPoints[i].point) {
+        outputPointer = numPlaces - 1;
+      }
+    }
+  }
+  return outputPointer;
+}

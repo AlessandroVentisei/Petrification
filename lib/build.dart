@@ -20,6 +20,7 @@ class BuildingState extends State<Building> {
   DrawnArc currentArc;
   Color selectedColor = Colors.black;
   String selectedShape;
+  List<dynamic> currentMarking;
   Matrix2d m2d = Matrix2d();
 
   StreamController<List<DrawnPoint>> drawnPointsStreamController =
@@ -49,6 +50,7 @@ class BuildingState extends State<Building> {
       onPanStart: onPanStart,
       onPanUpdate: onPanUpdate,
       onPanEnd: onPanEnd,
+      onTapDown: onTap,
       child: RepaintBoundary(
         child: Container(
           width: MediaQuery.of(context).size.width,
@@ -128,6 +130,7 @@ class BuildingState extends State<Building> {
           buildShapeButton("Place"),
           buildShapeButton("Transition"),
           buildShapeButton("Arc"),
+          buildShapeButton("Token"),
           buildShapeButton("Delete"),
         ],
       ),
@@ -173,7 +176,14 @@ class BuildingState extends State<Building> {
         setState(() {
           matrices[selectedShape.toString()] =
               matrices[selectedShape.toString()] + 1;
+          currentMarking = m2d.zeros(1, matrices["Place"]);
         });
+      }
+    }
+    if (selectedShape == "Token") {
+      if (conflictTesting(point, drawnPoints)) {
+        //find place which has been clicked on, then assign a token to it in a matrix variable.
+        //drawn a smaller circle inside the place which has been clicked on.
       }
     }
   }
@@ -205,6 +215,27 @@ class BuildingState extends State<Building> {
           currentArcStreamController.add(currentArc);
         }
       } on Error {}
+    }
+  }
+
+  void onTap(details) {
+    RenderBox box = context.findRenderObject();
+    Offset point = box.globalToLocal(details.globalPosition);
+    point = (point ~/ 25) * 25;
+    onPanStart(details);
+    if (selectedShape == "Token") {
+      if (conflictTesting(point, drawnPoints)) {
+        //implement function: ADD TOKEN.
+        //Hand sketcher point and draw a smaller token in place.
+        //update place matrix with recieved token. (set the state)
+        int placeDetails = placeFinder(drawnPoints, point);
+        drawnPoints = List.from(drawnPoints)
+          ..add(DrawnPoint(point, "Token", selectedColor));
+        drawnPointsStreamController.add(drawnPoints);
+        setState(() {
+          currentMarking[0][placeDetails] = 1;
+        });
+      }
     }
   }
 
