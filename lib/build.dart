@@ -160,7 +160,7 @@ class BuildingState extends State<Building> {
     Offset point = box.globalToLocal(details.globalPosition);
     point = (point ~/ 25) * 25;
     if (selectedShape == "Arc") {
-      if (conflictTesting(point, drawnPoints)) {
+      if (conflictTesting(point, drawnPoints) != "freeSpace") {
         currentArc = DrawnArc(point, point + Offset(5, 5), selectedColor);
         currentArcStreamController.add(currentArc);
       } else {
@@ -169,7 +169,7 @@ class BuildingState extends State<Building> {
       }
     }
     if (selectedShape == "Place" || selectedShape == "Transition") {
-      if (conflictTesting(point, drawnPoints) == false) {
+      if (conflictTesting(point, drawnPoints) == "freeSpace") {
         drawnPoints = List.from(drawnPoints)
           ..add(DrawnPoint(point, selectedShape, selectedColor));
         drawnPointsStreamController.add(drawnPoints);
@@ -178,12 +178,6 @@ class BuildingState extends State<Building> {
               matrices[selectedShape.toString()] + 1;
           currentMarking = m2d.zeros(1, matrices["Place"]);
         });
-      }
-    }
-    if (selectedShape == "Token") {
-      if (conflictTesting(point, drawnPoints)) {
-        //find place which has been clicked on, then assign a token to it in a matrix variable.
-        //drawn a smaller circle inside the place which has been clicked on.
       }
     }
   }
@@ -203,7 +197,8 @@ class BuildingState extends State<Building> {
   void onPanEnd(details) {
     if (selectedShape == "Arc") {
       try {
-        if (conflictTesting(currentArc.point2, drawnPoints)) {
+        final conflictTest = conflictTesting(currentArc.point2, drawnPoints);
+        if (conflictTest != "freeSpace") {
           currentArc =
               DrawnArc(currentArc.point1, currentArc.point2, selectedColor);
           drawnArcs = List.from(drawnArcs)..add(currentArc);
@@ -224,7 +219,7 @@ class BuildingState extends State<Building> {
     point = (point ~/ 25) * 25;
     onPanStart(details);
     if (selectedShape == "Token") {
-      if (conflictTesting(point, drawnPoints)) {
+      if (conflictTesting(point, drawnPoints) == "placeTap") {
         //implement function: ADD TOKEN.
         //Hand sketcher point and draw a smaller token in place.
         //update place matrix with recieved token. (set the state)
@@ -239,12 +234,15 @@ class BuildingState extends State<Building> {
     }
   }
 
-  bool conflictTesting(point, drawnPoints) {
+  String conflictTesting(point, drawnPoints) {
     for (int i = 0; i < drawnPoints.length; ++i) {
       if (point == drawnPoints[i].point) {
-        return true;
+        if (drawnPoints[i].shape == "Place") {
+          return "placeTap";
+        }
+        return "transTap";
       }
     }
-    return false;
+    return "freeSpace";
   }
 }
