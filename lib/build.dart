@@ -21,7 +21,11 @@ class BuildingState extends State<Building> {
   Color selectedColor = Colors.black;
   String selectedShape;
   List<dynamic> currentMarking;
+  List<dynamic> currentDiffMatrix;
   Matrix2d m2d = Matrix2d();
+
+  StreamController<List<dynamic>> diffMatrixStreamController =
+      StreamController<List<dynamic>>.broadcast();
 
   StreamController<List<DrawnPoint>> drawnPointsStreamController =
       StreamController<List<DrawnPoint>>.broadcast();
@@ -203,8 +207,9 @@ class BuildingState extends State<Building> {
               DrawnArc(currentArc.point1, currentArc.point2, selectedColor);
           drawnArcs = List.from(drawnArcs)..add(currentArc);
           drawnArcsStreamController.add(drawnArcs);
-          List<dynamic> diffMatrix = differenceMatrixBuilder(
+          currentDiffMatrix = differenceMatrixBuilder(
               matrices, selectedShape, drawnArcs, drawnPoints);
+          print(currentDiffMatrix);
         } else {
           currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor);
           currentArcStreamController.add(currentArc);

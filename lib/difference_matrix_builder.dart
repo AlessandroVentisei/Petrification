@@ -31,7 +31,7 @@ List<dynamic> differenceMatrixBuilderCurrentArc(matrices, selectedShape,
     diffMatrixMinus[loc[1]][loc[0]] += 1;
   }
   if (loc[2] == "Transition") {
-    diffMatrixPlus[loc[0]][loc[1]] += 1;
+    diffMatrixPlus[loc[1]][loc[0]] += 1;
   }
   return [diffMatrixMinus, diffMatrixPlus];
 }
