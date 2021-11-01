@@ -1,3 +1,4 @@
+import 'package:drawing_app/currentMarking.dart';
 import 'package:flutter/material.dart';
 import './sketcher.dart';
 import './drawn_line.dart';
@@ -23,9 +24,6 @@ class BuildingState extends State<Building> {
   List<dynamic> currentMarking;
   List<dynamic> currentDiffMatrix;
   Matrix2d m2d = Matrix2d();
-
-  StreamController<List<dynamic>> diffMatrixStreamController =
-      StreamController<List<dynamic>>.broadcast();
 
   StreamController<List<DrawnPoint>> drawnPointsStreamController =
       StreamController<List<DrawnPoint>>.broadcast();
@@ -225,16 +223,14 @@ class BuildingState extends State<Building> {
     onPanStart(details);
     if (selectedShape == "Token") {
       if (conflictTesting(point, drawnPoints) == "placeTap") {
-        //implement function: ADD TOKEN.
-        //Hand sketcher point and draw a smaller token in place.
         //update place matrix with recieved token. (set the state)
         int placeDetails = placeFinder(drawnPoints, point);
+        // add function which finds all token and place overlaps and then created the currentMarking.
         drawnPoints = List.from(drawnPoints)
           ..add(DrawnPoint(point, "Token", selectedColor));
         drawnPointsStreamController.add(drawnPoints);
-        setState(() {
-          currentMarking[0][placeDetails] = 1;
-        });
+        currentMarking = currentMarkingBuilder(drawnPoints, matrices);
+        print(currentMarking);
       }
     }
   }
