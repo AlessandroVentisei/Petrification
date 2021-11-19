@@ -4,7 +4,8 @@ import 'package:matrix2d/matrix2d.dart';
 //Information on how this is done: https://www.techfak.uni-bielefeld.de/~mchen/BioPNML/Intro/MRPN.html
 //Essential to advancement of PN is the difference matrix, once confirmed it may be used for each advancement.
 
-List differenceMatrixBuilder(matrices, selectedShape, drawnArcs, drawnPoints) {
+List<dynamic> differenceMatrixBuilder(
+    matrices, selectedShape, drawnArcs, drawnPoints) {
   Matrix2d m2d = Matrix2d();
   List<dynamic> diffMatrix =
       m2d.zeros(matrices["Place"], matrices["Transition"]);
@@ -28,7 +29,7 @@ List<dynamic> differenceMatrixBuilderCurrentArc(matrices, selectedShape,
   //currentArc.point1 must = a drawnPoints.point
   loc = pointFinder(drawnPoints, currentArc);
   if (loc[2] == "Place") {
-    diffMatrixMinus[loc[1]][loc[0]] += 1;
+    diffMatrixMinus[loc[0]][loc[1]] += 1;
   }
   if (loc[2] == "Transition") {
     diffMatrixPlus[loc[1]][loc[0]] += 1;

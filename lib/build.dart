@@ -1,4 +1,5 @@
 import 'package:drawing_app/currentMarking.dart';
+import 'package:drawing_app/simulate_net.dart';
 import 'package:flutter/material.dart';
 import './sketcher.dart';
 import './drawn_line.dart';
@@ -134,6 +135,7 @@ class BuildingState extends State<Building> {
           buildShapeButton("Arc"),
           buildShapeButton("Token"),
           buildShapeButton("Delete"),
+          buildSimulateButton("Simulate"),
         ],
       ),
     );
@@ -151,6 +153,26 @@ class BuildingState extends State<Building> {
         onPressed: () {
           setState(() {
             selectedShape = string;
+          });
+        },
+      ),
+    );
+  }
+
+  Widget buildSimulateButton(String string) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: FloatingActionButton(
+        mini: false,
+        backgroundColor: Colors.black,
+        child: Container(
+          child: Text(string, style: TextStyle(fontSize: 8)),
+        ),
+        onPressed: () {
+          setState(() {
+            // find transitionEnabled.
+            // enabledTransitions = liveTransitions();
+            simulateNet(currentMarking, currentDiffMatrix, matrices);
           });
         },
       ),
@@ -223,9 +245,6 @@ class BuildingState extends State<Building> {
     onPanStart(details);
     if (selectedShape == "Token") {
       if (conflictTesting(point, drawnPoints) == "placeTap") {
-        //update place matrix with recieved token. (set the state)
-        int placeDetails = placeFinder(drawnPoints, point);
-        // add function which finds all token and place overlaps and then created the currentMarking.
         drawnPoints = List.from(drawnPoints)
           ..add(DrawnPoint(point, "Token", selectedColor));
         drawnPointsStreamController.add(drawnPoints);
