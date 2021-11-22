@@ -26,33 +26,16 @@ class BuildingState extends State<Building> {
   List<dynamic> currentDiffMatrix;
   Matrix2d m2d = Matrix2d();
 
-  StreamController<List<DrawnPoint>> drawnPointsStreamController =
-      StreamController<List<DrawnPoint>>.broadcast();
-  StreamController<List<DrawnArc>> drawnArcsStreamController =
-      StreamController<List<DrawnArc>>.broadcast();
-  StreamController<DrawnArc> currentArcStreamController =
-      StreamController<DrawnArc>.broadcast();
-
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white,
-      body: Stack(
-        children: [
-          buildAllPoints(context),
-          buildAllArcs(context),
-          buildCurrentArc(context),
-          buildShapeToolbar(),
-          CustomPaint(
-              painter: ArcSketcher(
-            arcs: [currentArc],
-          )),
-          CustomPaint(
-              painter: ArcSketcher(
-            arcs: drawnArcs,
-          )),
-        ],
-      ),
+      body: Stack(children: [
+        buildAllPoints(context),
+        buildAllArcs(context),
+        buildCurrentArc(context),
+        buildShapeToolbar(),
+      ]),
     );
   }
 
@@ -64,21 +47,16 @@ class BuildingState extends State<Building> {
       onTapDown: onTap,
       child: RepaintBoundary(
         child: Container(
-          width: MediaQuery.of(context).size.width,
-          height: MediaQuery.of(context).size.height,
-          padding: EdgeInsets.all(4.0),
-          color: Colors.transparent,
-          alignment: Alignment.topLeft,
-          child: StreamBuilder<DrawnArc>(
-              stream: currentArcStreamController.stream,
-              builder: (context, snapshot) {
-                return CustomPaint(
-                  painter: ArcSketcher(
-                    arcs: [currentArc],
-                  ),
-                );
-              }),
-        ),
+            width: MediaQuery.of(context).size.width,
+            height: MediaQuery.of(context).size.height,
+            padding: EdgeInsets.all(4.0),
+            color: Colors.transparent,
+            alignment: Alignment.topLeft,
+            child: CustomPaint(
+              painter: ArcSketcher(
+                arcs: [currentArc],
+              ),
+            )),
       ),
     );
   }
@@ -86,22 +64,16 @@ class BuildingState extends State<Building> {
   Widget buildAllArcs(BuildContext context) {
     return RepaintBoundary(
       child: Container(
-        width: MediaQuery.of(context).size.width,
-        height: MediaQuery.of(context).size.height,
-        color: Colors.transparent,
-        padding: EdgeInsets.all(4.0),
-        alignment: Alignment.topLeft,
-        child: StreamBuilder<List<DrawnArc>>(
-          stream: drawnArcsStreamController.stream,
-          builder: (context, snapshot) {
-            return CustomPaint(
-              painter: ArcSketcher(
-                arcs: drawnArcs,
-              ),
-            );
-          },
-        ),
-      ),
+          width: MediaQuery.of(context).size.width,
+          height: MediaQuery.of(context).size.height,
+          color: Colors.transparent,
+          padding: EdgeInsets.all(4.0),
+          alignment: Alignment.topLeft,
+          child: CustomPaint(
+            painter: ArcSketcher(
+              arcs: drawnArcs,
+            ),
+          )),
     );
   }
 
@@ -113,15 +85,10 @@ class BuildingState extends State<Building> {
         color: Colors.transparent,
         padding: EdgeInsets.all(4.0),
         alignment: Alignment.topLeft,
-        child: StreamBuilder<List<DrawnPoint>>(
-          stream: drawnPointsStreamController.stream,
-          builder: (context, snapshot) {
-            return CustomPaint(
-              painter: Sketcher(
-                points: drawnPoints,
-              ),
-            );
-          },
+        child: CustomPaint(
+          painter: Sketcher(
+            points: drawnPoints,
+          ),
         ),
       ),
     );
@@ -177,9 +144,11 @@ class BuildingState extends State<Building> {
           child: Text(string, style: TextStyle(fontSize: 8)),
         ),
         onPressed: () {
-          List<dynamic> nextMarking =
-              simulateNet(currentMarking, currentDiffMatrix, matrices);
-          onChangeMarking(drawnPoints, nextMarking);
+          setState(() {
+            currentMarking =
+                simulateNet(currentMarking, currentDiffMatrix, matrices);
+            drawnPoints = onChangeMarking(drawnPoints, currentMarking);
+          });
         },
       ),
     );
@@ -191,8 +160,9 @@ class BuildingState extends State<Building> {
     point = (point ~/ 25) * 25;
     if (selectedShape == "Arc") {
       if (conflictTesting(point, drawnPoints) != "freeSpace") {
-        currentArc = DrawnArc(point, point + Offset(5, 5), selectedColor);
-        currentArcStreamController.add(currentArc);
+        setState(() {
+          currentArc = DrawnArc(point, point + Offset(5, 5), selectedColor);
+        });
       } else {
         currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor);
         return;
@@ -200,9 +170,10 @@ class BuildingState extends State<Building> {
     }
     if (selectedShape == "Place" || selectedShape == "Transition") {
       if (conflictTesting(point, drawnPoints) == "freeSpace") {
-        drawnPoints = List.from(drawnPoints)
-          ..add(DrawnPoint(point, selectedShape, selectedColor));
-        drawnPointsStreamController.add(drawnPoints);
+        setState(() {
+          drawnPoints = List.from(drawnPoints)
+            ..add(DrawnPoint(point, selectedShape, selectedColor));
+        });
         setState(() {
           matrices[selectedShape.toString()] =
               matrices[selectedShape.toString()] + 1;
@@ -218,8 +189,9 @@ class BuildingState extends State<Building> {
         RenderBox box = context.findRenderObject();
         Offset point = box.globalToLocal(details.globalPosition);
         point = (point ~/ 25) * 25;
-        currentArc = DrawnArc(currentArc.point1, point, selectedColor);
-        currentArcStreamController.add(currentArc);
+        setState(() {
+          currentArc = DrawnArc(currentArc.point1, point, selectedColor);
+        });
       }
     }
   }
@@ -231,14 +203,16 @@ class BuildingState extends State<Building> {
         if (conflictTest != "freeSpace") {
           currentArc =
               DrawnArc(currentArc.point1, currentArc.point2, selectedColor);
-          drawnArcs = List.from(drawnArcs)..add(currentArc);
-          drawnArcsStreamController.add(drawnArcs);
+          setState(() {
+            drawnArcs = List.from(drawnArcs)..add(currentArc);
+          });
           currentDiffMatrix = differenceMatrixBuilder(
               matrices, selectedShape, drawnArcs, drawnPoints);
           print(currentDiffMatrix);
         } else {
-          currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor);
-          currentArcStreamController.add(currentArc);
+          setState(() {
+            currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor);
+          });
         }
       } on Error {}
     }
@@ -251,45 +225,55 @@ class BuildingState extends State<Building> {
     onPanStart(details);
     if (selectedShape == "Token") {
       if (conflictTesting(point, drawnPoints) == "placeTap") {
-        drawnPoints = List.from(drawnPoints)
-          ..add(DrawnPoint(point, "Token", selectedColor));
-        drawnPointsStreamController.add(drawnPoints);
+        setState(() {
+          drawnPoints = List.from(drawnPoints)
+            ..add(DrawnPoint(point, "Token", selectedColor));
+        });
         currentMarking = currentMarkingBuilder(drawnPoints, matrices);
         print(currentMarking);
       }
     }
   }
 
-  void onChangeMarking(List<DrawnPoint> drawnPoints, currentMarking) {
+  List<DrawnPoint> onChangeMarking(
+      List<DrawnPoint> drawnPoints, currentMarking) {
+    List<DrawnPoint> drawingPointer = drawnPoints;
     int placeNum = 0;
     for (int i = 0; i < currentMarking.length; i++) {
       if (currentMarking[i] == 1) {
-        for (int j = 0; j < drawnPoints.length; j++) {
-          if (drawnPoints[j].shape == "Place" && placeNum == i) {
-            drawnPoints = List.from(drawnPoints)
-              ..add(DrawnPoint(drawnPoints[j].point, "Token", selectedColor));
-            drawnPointsStreamController.add(drawnPoints);
-          } else {
+        for (int j = 0; j < drawingPointer.length; j++) {
+          if (drawingPointer[j].shape == "Place") {
+            if (placeNum == i) {
+              drawingPointer = List.from(drawingPointer)
+                ..add(DrawnPoint(
+                    drawingPointer[j].point, "Token", selectedColor));
+            }
             placeNum++;
           }
         }
       } else {
-        tokenRemover(i, drawnPoints);
+        int pointer = tokenRemover(i, drawingPointer);
+        if (pointer != null) {
+          drawingPointer = List.from(drawingPointer)..removeAt(pointer);
+        } else {
+          drawingPointer = List.from(drawingPointer);
+        }
       }
     }
+    return drawingPointer;
   }
 
-  void tokenRemover(token, List<DrawnPoint> drawnPoints) {
+  int tokenRemover(token, List<DrawnPoint> drawnPoints) {
     int tokenPointer = 0;
     for (int i = 0; i < drawnPoints.length; i++) {
       if (drawnPoints[i].shape == "Token") {
         if (tokenPointer == token) {
-          drawnPoints = List.from(drawnPoints)..removeAt(i);
-          drawnPointsStreamController.add(drawnPoints);
+          return i;
         }
         tokenPointer++;
       }
     }
+    return null;
   }
 
   String conflictTesting(point, drawnPoints) {
