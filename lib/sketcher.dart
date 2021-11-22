@@ -31,6 +31,9 @@ class Sketcher extends CustomPainter {
             points[i].point - Offset(10, 10) + Offset(2.5, 2.5) & Size(15, 15),
             paint..color = Colors.white);
       }
+      if (points[i].shape == "Token") {
+        canvas.drawCircle(points[i].point, 4, paint);
+      }
     }
   }
 
