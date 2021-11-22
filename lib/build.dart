@@ -43,6 +43,14 @@ class BuildingState extends State<Building> {
           buildAllArcs(context),
           buildCurrentArc(context),
           buildShapeToolbar(),
+          CustomPaint(
+              painter: ArcSketcher(
+            arcs: [currentArc],
+          )),
+          CustomPaint(
+              painter: ArcSketcher(
+            arcs: drawnArcs,
+          )),
         ],
       ),
     );
@@ -169,11 +177,9 @@ class BuildingState extends State<Building> {
           child: Text(string, style: TextStyle(fontSize: 8)),
         ),
         onPressed: () {
-          setState(() {
-            // find transitionEnabled.
-            // enabledTransitions = liveTransitions();
-            simulateNet(currentMarking, currentDiffMatrix, matrices);
-          });
+          List<dynamic> nextMarking =
+              simulateNet(currentMarking, currentDiffMatrix, matrices);
+          onChangeMarking(drawnPoints, nextMarking);
         },
       ),
     );
@@ -250,6 +256,38 @@ class BuildingState extends State<Building> {
         drawnPointsStreamController.add(drawnPoints);
         currentMarking = currentMarkingBuilder(drawnPoints, matrices);
         print(currentMarking);
+      }
+    }
+  }
+
+  void onChangeMarking(List<DrawnPoint> drawnPoints, currentMarking) {
+    int placeNum = 0;
+    for (int i = 0; i < currentMarking.length; i++) {
+      if (currentMarking[i] == 1) {
+        for (int j = 0; j < drawnPoints.length; j++) {
+          if (drawnPoints[j].shape == "Place" && placeNum == i) {
+            drawnPoints = List.from(drawnPoints)
+              ..add(DrawnPoint(drawnPoints[j].point, "Token", selectedColor));
+            drawnPointsStreamController.add(drawnPoints);
+          } else {
+            placeNum++;
+          }
+        }
+      } else {
+        tokenRemover(i, drawnPoints);
+      }
+    }
+  }
+
+  void tokenRemover(token, List<DrawnPoint> drawnPoints) {
+    int tokenPointer = 0;
+    for (int i = 0; i < drawnPoints.length; i++) {
+      if (drawnPoints[i].shape == "Token") {
+        if (tokenPointer == token) {
+          drawnPoints = List.from(drawnPoints)..removeAt(i);
+          drawnPointsStreamController.add(drawnPoints);
+        }
+        tokenPointer++;
       }
     }
   }
