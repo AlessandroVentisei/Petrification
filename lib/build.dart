@@ -177,7 +177,7 @@ class BuildingState extends State<Building> {
         setState(() {
           matrices[selectedShape.toString()] =
               matrices[selectedShape.toString()] + 1;
-          currentMarking = m2d.zeros(1, matrices["Place"]);
+          currentMarking = List.filled(matrices["Place"], 0);
         });
       }
     }
