@@ -82,6 +82,20 @@ int placeFinder(drawnPoints, currentPoint) {
   return outputPointer;
 }
 
+int placeFinderBySequence(drawnPoints, currentPoint) {
+  int outputPointer = 0;
+  int numPlaces = 0;
+  for (int i = 0; i < drawnPoints.length; ++i) {
+    if (drawnPoints[i].shape == "Place") {
+      if (currentPoint == numPlaces) {
+        outputPointer = numPlaces;
+      }
+      numPlaces += 1;
+    }
+  }
+  return outputPointer;
+}
+
 int tokenFinder(drawnPoints, currentPoint) {
   int outputPointer = 0;
   int numTokens = 0;

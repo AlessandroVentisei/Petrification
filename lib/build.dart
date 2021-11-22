@@ -263,14 +263,18 @@ class BuildingState extends State<Building> {
     return drawingPointer;
   }
 
-  int tokenRemover(token, List<DrawnPoint> drawnPoints) {
+  int tokenRemover(placeNum, List<DrawnPoint> drawnPoints) {
+    //token is being removed from place 1, but is actually recorded in the list as token 0...
+    //the tokens aren't stored sequentially all the time, so we need to correlate the place and token
     int tokenPointer = 0;
+    // find place 1 -> find token from coords of place -> remove that element from the drawingPointer list.
+    int placePointer = placeFinderBySequence(drawnPoints, placeNum);
     for (int i = 0; i < drawnPoints.length; i++) {
       if (drawnPoints[i].shape == "Token") {
-        if (tokenPointer == token) {
-          return i;
+        if (drawnPoints[placePointer].point == drawnPoints[i].point) {
+          tokenPointer = i;
+          return tokenPointer;
         }
-        tokenPointer++;
       }
     }
     return null;
