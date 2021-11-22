@@ -81,3 +81,17 @@ int placeFinder(drawnPoints, currentPoint) {
   }
   return outputPointer;
 }
+
+int tokenFinder(drawnPoints, currentPoint) {
+  int outputPointer = 0;
+  int numTokens = 0;
+  for (int i = 0; i < drawnPoints.length; ++i) {
+    if (drawnPoints[i].shape == "Token") {
+      numTokens += 1;
+      if (currentPoint == drawnPoints[i].point) {
+        outputPointer = numTokens - 1;
+      }
+    }
+  }
+  return outputPointer;
+}

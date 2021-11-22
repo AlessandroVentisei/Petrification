@@ -1,10 +1,10 @@
 import 'package:drawing_app/difference_matrix_builder.dart';
 import 'package:flutter/material.dart';
 
-List<dynamic> currentMarkingBuilder(drawnPoints, matrices) {
+List<int> currentMarkingBuilder(drawnPoints, matrices) {
   Offset tokenCoord;
   int place;
-  List<dynamic> currentMarking = List.filled(matrices["Place"], 0);
+  List<int> currentMarking = List.filled(matrices["Place"], 0);
   for (int i = 0; i < drawnPoints.length; ++i) {
     if (drawnPoints[i].shape == "Token") {
       tokenCoord = drawnPoints[i].point;

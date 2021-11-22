@@ -5,7 +5,21 @@ import 'package:matrix2d/matrix2d.dart';
 
 simulateNet(marking, diffMatrix, matrices) {
   List<int> liveTransitions = liveTranstisions(marking, diffMatrix, matrices);
-  print(liveTransitions);
+  //NextMarking = ([TransitionMatrix]*[DiffMatrix]) + Marking
+  List<dynamic> newMarking = Matrix2d()
+      .addition(matrixMultiplication(liveTransitions, diffMatrix), marking);
+  print("Next Marking: " + newMarking.toString());
+  return newMarking;
+}
+
+List<int> matrixMultiplication(m1, m2) {
+  List<int> multiple = List.generate(m2.length, (index) => 0);
+  for (int i = 0; i < m2.length; i++) {
+    for (int j = 0; j < m1.length; j++) {
+      multiple[i] += (m1[j] * m2[i][j]);
+    }
+  }
+  return multiple;
 }
 
 List<int> liveTranstisions(currentMarking, diffMatrix, matrices) {
