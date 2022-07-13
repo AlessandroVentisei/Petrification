@@ -88,7 +88,7 @@ int placeFinderBySequence(drawnPoints, currentPoint) {
   for (int i = 0; i < drawnPoints.length; ++i) {
     if (drawnPoints[i].shape == "Place") {
       if (currentPoint == numPlaces) {
-        outputPointer = numPlaces;
+        outputPointer = i;
       }
       numPlaces += 1;
     }

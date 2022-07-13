@@ -237,11 +237,13 @@ class BuildingState extends State<Building> {
 
   List<DrawnPoint> onChangeMarking(
       List<DrawnPoint> drawnPoints, currentMarking) {
+    // this function is to re-draw points based on marking and drawn points.
     List<DrawnPoint> drawingPointer = drawnPoints;
-    int placeNum = 0;
     for (int i = 0; i < currentMarking.length; i++) {
-      if (currentMarking[i] == 1) {
+      int placeNum = 0;
+      if (currentMarking[i] >= 1) {
         for (int j = 0; j < drawingPointer.length; j++) {
+          // the issue is here, the placeNum counter counts beyond the number of places?
           if (drawingPointer[j].shape == "Place") {
             if (placeNum == i) {
               drawingPointer = List.from(drawingPointer)
@@ -252,7 +254,8 @@ class BuildingState extends State<Building> {
           }
         }
       } else {
-        int pointer = tokenRemover(i, drawingPointer);
+        // place num and drawn Points token remover here
+        int pointer = tokenRemover(i, drawnPoints);
         if (pointer != null) {
           drawingPointer = List.from(drawingPointer)..removeAt(pointer);
         } else {
