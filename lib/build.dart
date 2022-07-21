@@ -255,7 +255,7 @@ class BuildingState extends State<Building> {
         }
       } else {
         // place num and drawn Points token remover here
-        int pointer = tokenRemover(i, drawnPoints);
+        int pointer = tokenRemover(i, drawingPointer);
         if (pointer != null) {
           drawingPointer = List.from(drawingPointer)..removeAt(pointer);
         } else {
