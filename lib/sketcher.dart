@@ -1,3 +1,4 @@
+import 'dart:math';
 import 'dart:ui';
 
 import 'package:drawing_app/drawn_line.dart';
@@ -6,9 +7,10 @@ import 'package:arrow_path/arrow_path.dart';
 
 class Sketcher extends CustomPainter {
   final List<DrawnPoint> points;
+  final List<Place> places;
   final List<DrawnArc> arcs;
 
-  Sketcher({this.points, this.arcs});
+  Sketcher({this.points, this.places, this.arcs});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -20,19 +22,33 @@ class Sketcher extends CustomPainter {
       if (points[i] == null) continue;
       paint.color = points[i].color;
       paint.strokeWidth = 10;
-      if (points[i].shape == "Place") {
-        canvas.drawCircle(points[i].point, 10, paint);
-        canvas.drawCircle(
-            points[i].point, (10 - 0.3 * (10)), paint..color = Colors.white);
-      }
       if (points[i].shape == "Transition") {
         canvas.drawRect(points[i].point - Offset(10, 10) & Size(20, 20), paint);
         canvas.drawRect(
             points[i].point - Offset(10, 10) + Offset(2.5, 2.5) & Size(15, 15),
             paint..color = Colors.white);
       }
-      if (points[i].shape == "Token") {
-        canvas.drawCircle(points[i].point, 4, paint);
+    }
+    for (int i = 0; i < places.length; ++i) {
+      if (places[i] == null) continue;
+      paint.color = places[i].color;
+      paint.strokeWidth = 10;
+      canvas.drawCircle(places[i].point, 10, paint);
+      canvas.drawCircle(
+          places[i].point, (10 - 0.3 * (10)), paint..color = Colors.white);
+      // other points where token is the main guy
+      if (places[i].tokens == 1) {
+        canvas.drawCircle(places[i].point, 4, paint..color = Colors.black);
+      } else {
+        TextSpan span = new TextSpan(
+            style: new TextStyle(color: Colors.black),
+            text: places[i].tokens.toString());
+        TextPainter tp = new TextPainter(
+            text: span,
+            textAlign: TextAlign.left,
+            textDirection: TextDirection.ltr);
+        tp.layout();
+        tp.paint(canvas, (places[i].point + Offset(-5, -25)));
       }
     }
   }
@@ -62,8 +78,20 @@ class ArcSketcher extends CustomPainter {
       if (arcs[i].point1 == Offset(0, 0) || arcs[i].point2 == Offset(0, 0))
         continue;
       path = Path();
-      path.addPolygon([arcs[i].point1, arcs[i].point2 + Offset(1, 0)], false);
-      path = ArrowPath.make(path: path, tipLength: 7.5);
+      // var dx = arcs[i].point1.dx - arcs[i].point2.dx;
+      // var dy = arcs[i].point1.dy - arcs[i].point2.dy;
+      // var theta = tan(dy / dx);
+      path.addPolygon([arcs[i].point1 + Offset(10, 0), arcs[i].point2], false);
+      path = ArrowPath.make(path: path, tipLength: 5);
+      TextSpan span = new TextSpan(
+          style: new TextStyle(color: Colors.black),
+          text: arcs[i].weight.toString());
+      TextPainter tp = new TextPainter(
+          text: span,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr);
+      tp.layout();
+      tp.paint(canvas, (arcs[i].point1 + arcs[i].point2) / 2);
       canvas.drawPath(path, paint);
     }
   }

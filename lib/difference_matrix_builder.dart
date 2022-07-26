@@ -1,3 +1,4 @@
+import 'package:drawing_app/drawn_line.dart';
 import 'package:matrix2d/matrix2d.dart';
 
 //This is where the difference matrix is contructed after each arc is drawn.
@@ -5,7 +6,8 @@ import 'package:matrix2d/matrix2d.dart';
 //Essential to advancement of PN is the difference matrix, once confirmed it may be used for each advancement.
 
 List<dynamic> differenceMatrixBuilder(
-    matrices, selectedShape, drawnArcs, drawnPoints) {
+    matrices, selectedShape, drawnArcs, drawnPoints, drawnPlaces) {
+  // integrate drawnPlaces with the differenceMatrixBuilder.
   Matrix2d m2d = Matrix2d();
   List<dynamic> diffMatrix =
       m2d.zeros(matrices["Place"], matrices["Transition"]);
@@ -16,33 +18,60 @@ List<dynamic> differenceMatrixBuilder(
 
   for (int i = 0; i < drawnArcs.length; i++) {
     differenceMatrixBuilderCurrentArc(matrices, selectedShape, drawnPoints,
-        drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
+        drawnPlaces, drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
   }
   diffMatrix = m2d.subtraction(diffMatrixPlus, diffMatrixMinus);
   return diffMatrix;
 }
 
-List<dynamic> differenceMatrixBuilderCurrentArc(matrices, selectedShape,
-    drawnPoints, currentArc, diffMatrixPlus, diffMatrixMinus) {
+List<dynamic> differenceMatrixBuilderCurrentArc(
+    matrices,
+    selectedShape,
+    drawnPoints,
+    List<Place> drawnPlaces,
+    DrawnArc currentArc,
+    diffMatrixPlus,
+    diffMatrixMinus) {
   List<dynamic> loc;
   //This function will first compare the current arc to drawn places to find points connected.
   //currentArc.point1 must = a drawnPoints.point
-  loc = pointFinder(drawnPoints, currentArc);
+  loc = pointFinder(drawnPoints, drawnPlaces, currentArc);
   if (loc[2] == "Place") {
-    diffMatrixMinus[loc[0]][loc[1]] += 1;
+    diffMatrixMinus[loc[0]][loc[1]] += currentArc.weight;
   }
   if (loc[2] == "Transition") {
-    diffMatrixPlus[loc[1]][loc[0]] += 1;
+    diffMatrixPlus[loc[1]][loc[0]] += currentArc.weight;
   }
   return [diffMatrixMinus, diffMatrixPlus];
 }
 
-List<dynamic> pointFinder(drawnPoints, currentArc) {
+List<dynamic> pointFinder(drawnPoints, drawnPlaces, currentArc) {
   int outputPointer = 0;
   int inputPointer = 0;
   int numPlaces = 0;
   int numTrans = 0;
   String outputShape;
+  // this loops through the points drawn and gives the placeNum
+  // and transition num of the arc
+  for (int i = 0; i < drawnPlaces.length; i++) {
+    if (currentArc.point1 == drawnPlaces[i].point) {
+      outputPointer = i;
+      outputShape = "Place";
+    }
+    if (currentArc.point2 == drawnPlaces[i].point) {
+      inputPointer = i;
+    }
+  }
+  for (int i = 0; i < drawnPoints.length; i++) {
+    if (currentArc.point1 == drawnPoints[i].point) {
+      outputPointer = i;
+      outputShape = "Transition";
+    }
+    if (currentArc.point2 == drawnPoints[i].point) {
+      inputPointer = i;
+    }
+  }
+  /*
   for (int i = 0; i < drawnPoints.length; ++i) {
     if (drawnPoints[i].shape == "Place") {
       numPlaces += 1;
@@ -64,7 +93,7 @@ List<dynamic> pointFinder(drawnPoints, currentArc) {
         inputPointer = numTrans - 1;
       }
     }
-  }
+  }*/
   return [outputPointer, inputPointer, outputShape];
 }
 

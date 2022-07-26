@@ -1,6 +1,7 @@
 import 'package:drawing_app/difference_matrix_builder.dart';
 import 'package:flutter/material.dart';
 
+// to be deleted
 List<int> currentMarkingBuilder(drawnPoints, matrices) {
   Offset tokenCoord;
   int place;
@@ -12,7 +13,7 @@ List<int> currentMarkingBuilder(drawnPoints, matrices) {
         if (drawnPoints[l].shape == "Place" &&
             drawnPoints[l].point == tokenCoord) {
           place = placeFinder(drawnPoints, tokenCoord);
-          currentMarking[place] = 1;
+          currentMarking[place] += 1;
         }
       }
     }

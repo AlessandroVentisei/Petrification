@@ -1,15 +1,21 @@
 import 'dart:io';
 
+import 'package:drawing_app/drawn_line.dart';
 import 'package:flutter/material.dart';
 import 'package:matrix2d/matrix2d.dart';
 
-simulateNet(marking, diffMatrix, matrices) {
+simulateNet(List<Place> drawnPlaces, diffMatrix, matrices) {
+  final marking = List<num>.generate(
+      drawnPlaces.length, (index) => drawnPlaces[index].tokens);
   List<int> liveTransitions = liveTranstisions(marking, diffMatrix, matrices);
   //NextMarking = ([TransitionMatrix]*[DiffMatrix]) + Marking
   List<dynamic> newMarking = Matrix2d()
       .addition(matrixMultiplication(liveTransitions, diffMatrix), marking);
   print("Next Marking: " + newMarking.toString());
-  return newMarking;
+  for (int i = 0; i < drawnPlaces.length; i++) {
+    drawnPlaces[i].tokens = newMarking[i];
+  }
+  return drawnPlaces;
 }
 
 List<int> matrixMultiplication(m1, m2) {
