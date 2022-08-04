@@ -6,18 +6,22 @@ import 'package:matrix2d/matrix2d.dart';
 //Essential to advancement of PN is the difference matrix, once confirmed it may be used for each advancement.
 
 List<dynamic> differenceMatrixBuilder(
-    matrices, selectedShape, drawnArcs, drawnPoints, drawnPlaces) {
+    selectedShape, drawnArcs, drawnPoints, drawnPlaces) {
   // integrate drawnPlaces with the differenceMatrixBuilder.
+  final objectMatrix = {
+    "Place": drawnPlaces.length,
+    "Transition": drawnPoints.length
+  };
   Matrix2d m2d = Matrix2d();
   List<dynamic> diffMatrix =
-      m2d.zeros(matrices["Place"], matrices["Transition"]);
+      m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
   List<dynamic> diffMatrixPlus =
-      m2d.zeros(matrices["Place"], matrices["Transition"]);
+      m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
   List<dynamic> diffMatrixMinus =
-      m2d.zeros(matrices["Place"], matrices["Transition"]);
+      m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
 
   for (int i = 0; i < drawnArcs.length; i++) {
-    differenceMatrixBuilderCurrentArc(matrices, selectedShape, drawnPoints,
+    differenceMatrixBuilderCurrentArc(objectMatrix, selectedShape, drawnPoints,
         drawnPlaces, drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
   }
   diffMatrix = m2d.subtraction(diffMatrixPlus, diffMatrixMinus);

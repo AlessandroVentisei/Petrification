@@ -151,7 +151,8 @@ class BuildingState extends State<Building> {
         ),
         onPressed: () {
           setState(() {
-            drawnPlaces = simulateNet(drawnPlaces, currentDiffMatrix, matrices);
+            drawnPlaces =
+                simulateNet(drawnPlaces, drawnPoints, currentDiffMatrix);
             drawnPoints = drawnPoints;
           });
         },
@@ -231,6 +232,15 @@ class BuildingState extends State<Building> {
         currentMarking = List.filled(matrices["Place"], 0);
       });
     }
+    if (selectedShape == "Delete") {
+      setState(() {
+        drawnPlaces.removeWhere((element) => element.point == point);
+        drawnPoints.removeWhere((element) => element.point == point);
+        drawnArcs.removeWhere(
+            (element) => (element.point1 == point || element.point2 == point));
+        currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), Colors.white, 0);
+      });
+    }
   }
 
   void onPanUpdate(details) {
@@ -304,7 +314,7 @@ class BuildingState extends State<Building> {
               drawnArcs = List.from(drawnArcs)..add(currentArc);
             });
             currentDiffMatrix = differenceMatrixBuilder(
-                matrices, selectedShape, drawnArcs, drawnPoints, drawnPlaces);
+                selectedShape, drawnArcs, drawnPoints, drawnPlaces);
             print(currentDiffMatrix);
           }
         } else {
