@@ -22,7 +22,6 @@ class BuildingState extends State<Building> {
   List<DrawnPoint> drawnPoints = <DrawnPoint>[];
   List<Place> drawnPlaces = <Place>[];
   List<DrawnArc> drawnArcs = <DrawnArc>[];
-  Map<String, dynamic> matrices = {"Place": 0, "Transition": 0};
   DrawnArc currentArc;
   Color selectedColor = Colors.black;
   String selectedShape;
@@ -213,11 +212,6 @@ class BuildingState extends State<Building> {
             ..add(Place(point, 0, selectedColor));
         });
       }
-      setState(() {
-        matrices[selectedShape.toString()] =
-            matrices[selectedShape.toString()] + 1;
-        currentMarking = List.filled(matrices["Place"], 0);
-      });
     }
     if (selectedShape == "Transition") {
       if (conflictTesting(point, drawnPoints, drawnPlaces) == "freeSpace") {
@@ -226,11 +220,6 @@ class BuildingState extends State<Building> {
             ..add(DrawnPoint(point, selectedShape, selectedColor));
         });
       }
-      setState(() {
-        matrices[selectedShape.toString()] =
-            matrices[selectedShape.toString()] + 1;
-        currentMarking = List.filled(matrices["Place"], 0);
-      });
     }
     if (selectedShape == "Delete") {
       setState(() {
