@@ -3,6 +3,7 @@ import 'dart:html' as html;
 
 import 'package:drawing_app/currentMarking.dart';
 import 'package:drawing_app/simulate_net.dart';
+import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import './sketcher.dart';
 import './drawn_line.dart';
@@ -10,6 +11,7 @@ import 'package:flutter/rendering.dart';
 import 'dart:async';
 import 'package:matrix2d/matrix2d.dart';
 import './difference_matrix_builder.dart';
+import 'package:file_picker_web/file_picker_web.dart' as webPicker;
 
 class Building extends StatefulWidget {
   @override
@@ -115,7 +117,8 @@ class BuildingState extends State<Building> {
           buildShapeButton("Token"),
           buildShapeButton("Delete"),
           buildSimulateButton("Simulate"),
-          buildSaveButton("Save")
+          buildSaveButton("Save"),
+          buildUploadButton("Upload")
         ],
       ),
     );
@@ -168,24 +171,69 @@ class BuildingState extends State<Building> {
         child: Container(
           child: Text(string, style: TextStyle(fontSize: 8)),
         ),
-        onPressed: () {
+        onPressed: () async {
           // save the PN to a file.
-          String stringDrawnPoints = jsonEncode(drawnPoints[0]);
-          final text = stringDrawnPoints;
+          Map<String, dynamic> stringDrawnPoints = {
+            "transitions": json.encode(drawnPoints),
+            "places": json.encode(drawnPlaces),
+            "arcs": json.encode(drawnArcs)
+          };
           // prepare
-          final bytes = utf8.encode(text);
+          await saveDialog(context);
+          final bytes = utf8.encode(jsonEncode(stringDrawnPoints));
           final blob = html.Blob([bytes]);
           final url = html.Url.createObjectUrlFromBlob(blob);
           final anchor = html.document.createElement('a') as html.AnchorElement
             ..href = url
             ..style.display = 'none'
-            ..download = 'some_name.txt';
+            ..download = fileName + ".txt";
           html.document.body.children.add(anchor);
           // download
           anchor.click();
           // cleanup
           html.document.body.children.remove(anchor);
           html.Url.revokeObjectUrl(url);
+        },
+      ),
+    );
+  }
+
+  Widget buildUploadButton(String string) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: FloatingActionButton(
+        mini: false,
+        backgroundColor: Colors.green,
+        child: Container(
+          child: Text(string, style: TextStyle(fontSize: 8)),
+        ),
+        onPressed: () async {
+          if (kIsWeb) {
+            final html.File file = await webPicker.FilePicker.getFile(
+              allowedExtensions: ['txt'],
+            );
+
+            final reader = html.FileReader();
+            reader.readAsText(file);
+            await reader.onLoad.first;
+            Map<String, dynamic> data = jsonDecode(reader.result);
+            var transitions = jsonDecode(data["transitions"]);
+            var places = jsonDecode(data["places"]);
+            var arcs = jsonDecode(data["arcs"]);
+            List<DrawnPoint> fileDrawnPoints = List.generate(transitions.length,
+                (index) => DrawnPoint.fromJson(transitions[index]));
+            List<Place> fileDrawnPlace = List.generate(
+                places.length, (index) => Place.fromJson(places[index]));
+            List<DrawnArc> fileDrawnArc = List.generate(
+                arcs.length, (index) => DrawnArc.fromJson(arcs[index]));
+            setState(() {
+              drawnPoints = fileDrawnPoints;
+              drawnPlaces = fileDrawnPlace;
+              drawnArcs = fileDrawnArc;
+              currentDiffMatrix = differenceMatrixBuilder(
+                  selectedShape, drawnArcs, drawnPoints, drawnPlaces);
+            });
+          }
         },
       ),
     );
@@ -377,44 +425,6 @@ class BuildingState extends State<Building> {
     }
   }
 
-  List<DrawnPoint> onChangeMarking(
-      List<DrawnPoint> drawnPoints, List<Place> drawnPlaces, currentMarking) {
-    // this function is to re-draw points based on marking and drawn points.
-    // current marking [0,1,0]
-    // drawn points: place, transition, things
-    /*
-    List<DrawnPoint> drawingPointer = drawnPoints;
-    for (int i = 0; i < currentMarking.length; i++) {
-      int placeNum = 0;
-      if (currentMarking[i] >= 1) {
-        for (int j = 0; j < drawingPointer.length; j++) {
-          // the issue is here, the placeNum counter counts beyond the number of places?
-          if (drawingPointer[j].shape == "Place") {
-            if (placeNum == i) {
-              for (int l = 0; l < currentMarking[i]; l++) {
-                drawingPointer = List.from(drawingPointer)
-                  ..add(DrawnPoint(
-                      drawingPointer[j].point, "Token", selectedColor));
-              }
-            }
-            placeNum++;
-          }
-        }
-      } else {
-        var place = drawingPointer
-            .where((element) => element.shape == "Place")
-            .toList();
-        for (int l = 0; l < places.length; l++) {
-          // place num and drawn Points token remover here
-          drawingPointer.removeWhere((element) =>
-              (element.shape == "Token" && element.point == places[l].point));
-        }
-      }*/
-    // }
-
-    // return drawingPointer;
-  }
-
   int tokenRemover(placeNum, List<DrawnPoint> drawnPoints) {
     //token is being removed from place 1, but is actually recorded in the list as token 0...
     //the tokens aren't stored sequentially all the time, so we need to correlate the place and token
@@ -444,5 +454,36 @@ class BuildingState extends State<Building> {
       return "transTap";
     }
     return "freeSpace";
+  }
+
+  TextEditingController _saveFileController = TextEditingController();
+  String fileName;
+  saveDialog(BuildContext context) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('FileName'),
+            content: TextField(
+              onChanged: (value) {
+                setState(() {
+                  fileName = value;
+                });
+              },
+              controller: _saveFileController,
+              decoration: InputDecoration(hintText: "Input file name"),
+            ),
+            actions: <Widget>[
+              TextButton(
+                child: Text('SAVE'),
+                onPressed: () {
+                  setState(() {
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+            ],
+          );
+        });
   }
 }
