@@ -78,10 +78,22 @@ class ArcSketcher extends CustomPainter {
       if (arcs[i].point1 == Offset(0, 0) || arcs[i].point2 == Offset(0, 0))
         continue;
       path = Path();
-      // var dx = arcs[i].point1.dx - arcs[i].point2.dx;
-      // var dy = arcs[i].point1.dy - arcs[i].point2.dy;
-      // var theta = tan(dy / dx);
-      path.addPolygon([arcs[i].point1 + Offset(10, 0), arcs[i].point2], false);
+      // path.addPolygon([arcs[i].point1, arcs[i].point2], false);
+
+      var deltaX = arcs[i].point2.dx - arcs[i].point1.dx;
+      var deltaY = arcs[i].point2.dy - arcs[i].point1.dy;
+      var theta = atan2(deltaY, deltaX);
+      // find starting offset with ten pixels in the direction of the angle of the arc.
+      var startOffset = Offset.fromDirection(theta, 10)
+          .translate(arcs[i].point1.dx, arcs[i].point1.dy);
+      // move to this point.
+      path.moveTo(startOffset.dx, startOffset.dy);
+      var distance = sqrt(pow(deltaX, 2) + pow(deltaY, 2));
+      // find ending offset with (distance - 10 pixels) in the direction of the angle of the arc.
+      var lineTo = Offset.fromDirection(theta, distance - 10)
+          .translate(arcs[i].point1.dx, arcs[i].point1.dy);
+      // move to that point.
+      path.lineTo(lineTo.dx, lineTo.dy);
       path = ArrowPath.make(path: path, tipLength: 5);
       TextSpan span = new TextSpan(
           style: new TextStyle(color: Colors.black),
