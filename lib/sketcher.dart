@@ -11,7 +11,6 @@ class Sketcher extends CustomPainter {
   final List<DrawnArc> arcs;
 
   Sketcher({this.points, this.places, this.arcs});
-
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
@@ -33,12 +32,67 @@ class Sketcher extends CustomPainter {
       if (places[i] == null) continue;
       paint.color = places[i].color;
       paint.strokeWidth = 10;
-      canvas.drawCircle(places[i].point, 10, paint);
-      canvas.drawCircle(
-          places[i].point, (10 - 0.3 * (10)), paint..color = Colors.white);
+      var placeRadius = 10.0;
+      var tokenRadius = 4.0;
+      var spacing = 0.75;
+      canvas.drawCircle(places[i].point, placeRadius, paint);
+      canvas.drawCircle(places[i].point, (placeRadius - 0.3 * (placeRadius)),
+          paint..color = Colors.white);
       // other points where token is the main guy
       if (places[i].tokens == 1) {
-        canvas.drawCircle(places[i].point, 4, paint..color = Colors.black);
+        canvas.drawCircle(
+            places[i].point, tokenRadius, paint..color = Colors.black);
+      } else if (places[i].tokens == 2) {
+        // two circle packing solution.
+        canvas.drawCircle(
+            Offset(places[i].point.dx - (tokenRadius / 2 + spacing),
+                places[i].point.dy),
+            tokenRadius / 2,
+            paint..color = Colors.black);
+        canvas.drawCircle(
+            Offset(places[i].point.dx + (tokenRadius / 2 + spacing),
+                places[i].point.dy),
+            tokenRadius / 2,
+            paint..color = Colors.black);
+      } else if (places[i].tokens == 3) {
+        // three circle packing solution.
+        canvas.drawCircle(
+            Offset(places[i].point.dx,
+                places[i].point.dy - (tokenRadius / 2 + spacing)),
+            tokenRadius / 2,
+            paint..color = Colors.black);
+        canvas.drawCircle(
+            Offset(places[i].point.dx - (tokenRadius / 2 + spacing),
+                places[i].point.dy + (tokenRadius / 2 + spacing)),
+            tokenRadius / 2,
+            paint..color = Colors.black);
+        canvas.drawCircle(
+            Offset(places[i].point.dx + (tokenRadius / 2 + spacing),
+                places[i].point.dy + (tokenRadius / 2 + spacing)),
+            tokenRadius / 2,
+            paint..color = Colors.black);
+      } else if (places[i].tokens == 4) {
+        // two circle packing solution.
+        canvas.drawCircle(
+            Offset(places[i].point.dx - (tokenRadius / 2 + spacing),
+                places[i].point.dy - (tokenRadius / 2 + spacing)),
+            tokenRadius / 2,
+            paint..color = Colors.black);
+        canvas.drawCircle(
+            Offset(places[i].point.dx + (tokenRadius / 2 + spacing),
+                places[i].point.dy - (tokenRadius / 2 + spacing)),
+            tokenRadius / 2,
+            paint..color = Colors.black);
+        canvas.drawCircle(
+            Offset(places[i].point.dx + (tokenRadius / 2 + spacing),
+                places[i].point.dy + (tokenRadius / 2 + spacing)),
+            tokenRadius / 2,
+            paint..color = Colors.black);
+        canvas.drawCircle(
+            Offset(places[i].point.dx - (tokenRadius / 2 + spacing),
+                places[i].point.dy + (tokenRadius / 2 + spacing)),
+            tokenRadius / 2,
+            paint..color = Colors.black);
       } else {
         TextSpan span = new TextSpan(
             style: new TextStyle(color: Colors.black),
@@ -78,8 +132,6 @@ class ArcSketcher extends CustomPainter {
       if (arcs[i].point1 == Offset(0, 0) || arcs[i].point2 == Offset(0, 0))
         continue;
       path = Path();
-      // path.addPolygon([arcs[i].point1, arcs[i].point2], false);
-
       var deltaX = arcs[i].point2.dx - arcs[i].point1.dx;
       var deltaY = arcs[i].point2.dy - arcs[i].point1.dy;
       var theta = atan2(deltaY, deltaX);
