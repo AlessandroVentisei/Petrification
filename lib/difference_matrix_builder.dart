@@ -6,7 +6,7 @@ import 'package:matrix2d/matrix2d.dart';
 //Essential to advancement of PN is the difference matrix, once confirmed it may be used for each advancement.
 
 //TODO:
-// clean up the arcs and arrows in the builder
+// labels are too difficult to make out and they should be able to be disabled.
 // make the token question part of the UI instead of a popup box
 
 List<dynamic> differenceMatrixBuilder(

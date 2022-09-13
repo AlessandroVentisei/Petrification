@@ -103,7 +103,13 @@ class ArcSketcher extends CustomPainter {
           textAlign: TextAlign.left,
           textDirection: TextDirection.ltr);
       tp.layout();
-      tp.paint(canvas, (arcs[i].point1 + arcs[i].point2) / 2);
+      // special theta to find the tangent which the label should sit on.
+      var theta1 = (atan(deltaY / deltaX) + pi / 2);
+      var textLabelTranslation = Offset.fromDirection(theta1, 10);
+      var textLabelOffset = Offset.fromDirection(theta, distance / 2).translate(
+          arcs[i].point1.dx + textLabelTranslation.dx,
+          arcs[i].point1.dy + textLabelTranslation.dy);
+      tp.paint(canvas, textLabelOffset);
       canvas.drawPath(path, paint);
     }
   }
