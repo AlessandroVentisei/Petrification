@@ -5,6 +5,7 @@ import 'package:drawing_app/currentMarking.dart';
 import 'package:drawing_app/simulate_net.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import './sketcher.dart';
 import './drawn_line.dart';
 import 'package:flutter/rendering.dart';
@@ -27,21 +28,78 @@ class BuildingState extends State<Building> {
   DrawnArc currentArc;
   Color selectedColor = Colors.black;
   String selectedShape;
+  String selectedPhotonicShape;
+  double x = 0.0;
+  double y = 0.0;
   List<dynamic> currentMarking;
   List<dynamic> currentDiffMatrix;
   Matrix2d m2d = Matrix2d();
+  List<DrawnJunction> drawnJunctions = <DrawnJunction>[];
+  DrawnJunction hoverJunction;
+  bool circuitPage;
+
+  @override
+  initState() {
+    super.initState();
+    circuitPage = false;
+    selectedPhotonicShape = "4-Port";
+  }
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      backgroundColor: Colors.white,
-      body: Stack(children: [
-        buildAllPoints(context),
-        buildAllArcs(context),
-        buildCurrentArc(context),
-        buildShapeToolbar(),
-      ]),
-    );
+    return (circuitPage == true)
+        ?
+        // high level photonic circuit building branch.
+        Scaffold(
+            backgroundColor: Colors.white,
+            body: Stack(children: [
+              buildHoverJunction(context, x, y),
+              buildPhotonicShapeToolbar()
+            ]),
+          )
+        :
+        // pn building page lives here.
+        Scaffold(
+            backgroundColor: Colors.white,
+            body: Stack(children: [
+              buildAllPoints(context),
+              buildAllArcs(context),
+              buildCurrentArc(context),
+              buildPNShapeToolbar(),
+            ]),
+          );
+  }
+
+  Widget buildHoverJunction(BuildContext context, x, y) {
+    return MouseRegion(
+        onHover: _updateLocation,
+        child: GestureDetector(
+          onTapDown: onTapPhotonic,
+          child: RepaintBoundary(
+            child: Container(
+                width: MediaQuery.of(context).size.width,
+                height: MediaQuery.of(context).size.height,
+                padding: EdgeInsets.fromLTRB(100, 0, 0, 0),
+                color: Colors.transparent,
+                alignment: Alignment.topLeft,
+                child: CustomPaint(
+                    painter: DrawAllJunctions(
+                        junctions: drawnJunctions,
+                        hoverJunction: DrawnJunction(
+                            Offset(x, y), selectedPhotonicShape)))),
+          ),
+        ));
+  }
+
+  void _updateLocation(PointerEvent details) {
+    // TODO validate the placement of junctions here
+    // 1) no 4-port placed within 100 px of eachother.
+    // 2) no standalong junctions if the drawnJunctions array is non-empty.
+    // 3) junctions must align either in dx or dy so the ports match up
+    setState(() {
+      this.x = ((details.localPosition.dx - 100) ~/ 25.0) * 25.0;
+      this.y = ((details.localPosition.dy) ~/ 25.0) * 25.0;
+    });
   }
 
   Widget buildCurrentArc(BuildContext context) {
@@ -64,6 +122,18 @@ class BuildingState extends State<Building> {
             )),
       ),
     );
+  }
+
+  void onTapPhotonic(details) {
+    RenderBox box = context.findRenderObject();
+    Offset point = box.globalToLocal(details.globalPosition);
+    point = (point ~/ 25) * 25;
+    print(drawnJunctions);
+    setState(() {
+      this.drawnJunctions.add(DrawnJunction(
+          Offset(point.dx - 100, point.dy), selectedPhotonicShape));
+    });
+    // add a junction of the type selectedPhotonicShape with position of point
   }
 
   Widget buildAllArcs(BuildContext context) {
@@ -100,7 +170,7 @@ class BuildingState extends State<Building> {
     );
   }
 
-  Widget buildShapeToolbar() {
+  Widget buildPNShapeToolbar() {
     return Positioned(
       top: 40.0,
       left: 10.0,
@@ -111,6 +181,7 @@ class BuildingState extends State<Building> {
           Divider(
             height: 20.0,
           ),
+          buildStateButton(circuitPage),
           buildShapeButton("Place"),
           buildShapeButton("Transition"),
           buildShapeButton("Arc"),
@@ -120,6 +191,71 @@ class BuildingState extends State<Building> {
           buildSaveButton("Save"),
           buildUploadButton("Upload")
         ],
+      ),
+    );
+  }
+
+  Widget buildPhotonicShapeToolbar() {
+    return Positioned(
+      top: 40.0,
+      left: 10.0,
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.center,
+        mainAxisAlignment: MainAxisAlignment.start,
+        children: [
+          Divider(
+            height: 20.0,
+          ),
+          buildStateButton(circuitPage),
+          buildPhotonicShapeButton("4-Port"),
+          buildPhotonicShapeButton("3-Port"),
+          buildPhotonicShapeButton("2-Port")
+        ],
+      ),
+    );
+  }
+
+  Widget buildStateButton(bool circuitPage) {
+    // the button for switching between PN and photonics pages.
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: FloatingActionButton(
+        mini: false,
+        backgroundColor: Colors.yellow,
+        child: Container(
+          child: Text(
+              (circuitPage == false) ? "Photoic-Circuit" : "Petri-Net Rep",
+              style: TextStyle(fontSize: 8, color: Colors.black)),
+        ),
+        onPressed: () {
+          if (circuitPage == false) {
+            setState(() {
+              this.circuitPage = true;
+            });
+          } else {
+            setState(() {
+              this.circuitPage = false;
+            });
+          }
+        },
+      ),
+    );
+  }
+
+  Widget buildPhotonicShapeButton(String string) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: FloatingActionButton(
+        mini: false,
+        backgroundColor: Colors.black,
+        child: Container(
+          child: Text(string, style: TextStyle(fontSize: 8)),
+        ),
+        onPressed: () {
+          setState(() {
+            selectedPhotonicShape = string;
+          });
+        },
       ),
     );
   }

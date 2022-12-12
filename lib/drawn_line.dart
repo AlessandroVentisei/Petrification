@@ -67,3 +67,9 @@ class DrawnArc {
     color = Color(num.parse(json['color']));
   }
 }
+
+class DrawnJunction {
+  Offset point;
+  String shape;
+  DrawnJunction(this.point, this.shape);
+}

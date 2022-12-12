@@ -115,6 +115,63 @@ class Sketcher extends CustomPainter {
   }
 }
 
+class DrawAllJunctions extends CustomPainter {
+  final List<DrawnJunction> junctions;
+  final DrawnJunction hoverJunction;
+
+  DrawAllJunctions({this.junctions, this.hoverJunction});
+
+  @override
+  void paint(Canvas canvas, Size size) {
+    Paint paint = Paint()
+      ..color = Colors.black
+      ..strokeCap = StrokeCap.round
+      ..strokeWidth = 5.0;
+    for (var i = 0; i < junctions.length; i++) {
+      if (junctions[i].shape == "4-Port") {
+        // draw a 4-port at point
+        draw4port(junctions[i].point.dx, junctions[i].point.dy, canvas, paint);
+      } else if (junctions[i].shape == "3-Port") {
+        draw3port(junctions[i].point.dx, junctions[i].point.dy, canvas, paint);
+      } else if (junctions[i].shape == "2-Port") {
+        draw2Port(junctions[i].point.dx, junctions[i].point.dy, canvas, paint);
+      }
+    }
+    paint.color = Colors.black45;
+    if (hoverJunction.shape == "4-Port") {
+      // draw a 4-port at point
+      draw4port(hoverJunction.point.dx, hoverJunction.point.dy, canvas, paint);
+    } else if (hoverJunction.shape == "3-Port") {
+      draw3port(hoverJunction.point.dx, hoverJunction.point.dy, canvas, paint);
+    } else if (hoverJunction.shape == "2-Port") {
+      draw2Port(hoverJunction.point.dx, hoverJunction.point.dy, canvas, paint);
+    }
+  }
+
+  @override
+  bool shouldRepaint(DrawAllJunctions oldDelegate) {
+    return true;
+  }
+}
+
+void draw4port(double pointx, double pointy, Canvas canvas, Paint paint) {
+  canvas.drawLine(Offset(pointx, pointy), Offset(pointx + 100, pointy), paint);
+  canvas.drawLine(Offset(pointx, pointy), Offset(pointx - 100, pointy), paint);
+  canvas.drawLine(Offset(pointx, pointy), Offset(pointx, pointy + 100), paint);
+  canvas.drawLine(Offset(pointx, pointy), Offset(pointx, pointy - 100), paint);
+}
+
+void draw3port(double pointx, double pointy, Canvas canvas, Paint paint) {
+  canvas.drawLine(Offset(pointx, pointy), Offset(pointx + 100, pointy), paint);
+  canvas.drawLine(Offset(pointx, pointy), Offset(pointx, pointy + 100), paint);
+  canvas.drawLine(Offset(pointx, pointy), Offset(pointx, pointy - 100), paint);
+}
+
+void draw2Port(double pointx, double pointy, Canvas canvas, Paint paint) {
+  canvas.drawLine(Offset(pointx, pointy), Offset(pointx, pointy + 100), paint);
+  canvas.drawLine(Offset(pointx, pointy), Offset(pointx, pointy - 100), paint);
+}
+
 class ArcSketcher extends CustomPainter {
   final List<DrawnArc> arcs;
 
