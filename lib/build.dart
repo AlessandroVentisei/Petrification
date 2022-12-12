@@ -341,7 +341,8 @@ class BuildingState extends State<Building> {
         final conflictTest =
             conflictTesting(currentArc.point2, drawnPoints, drawnPlaces);
         if (conflictTest != "freeSpace") {
-          await displayArcDialog(context);
+          // await displayArcDialog(context);
+          codeDialog = 1;
           if (codeDialog == 0) {
             return;
           } else {

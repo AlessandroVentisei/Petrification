@@ -1,5 +1,4 @@
 import 'dart:math';
-import 'dart:ui';
 
 import 'package:drawing_app/drawn_line.dart';
 import 'package:flutter/material.dart';
@@ -94,15 +93,18 @@ class Sketcher extends CustomPainter {
             tokenRadius / 2,
             paint..color = Colors.black);
       } else {
-        TextSpan span = new TextSpan(
-            style: new TextStyle(color: Colors.black),
-            text: places[i].tokens.toString());
-        TextPainter tp = new TextPainter(
-            text: span,
-            textAlign: TextAlign.left,
-            textDirection: TextDirection.ltr);
-        tp.layout();
-        tp.paint(canvas, (places[i].point + Offset(-5, -25)));
+        // if there is 0 tokens in the place then don't draw a label
+        if (places[i].tokens != 0) {
+          TextSpan span = new TextSpan(
+              style: new TextStyle(color: Colors.black),
+              text: places[i].tokens.toString());
+          TextPainter tp = new TextPainter(
+              text: span,
+              textAlign: TextAlign.left,
+              textDirection: TextDirection.ltr);
+          tp.layout();
+          tp.paint(canvas, (places[i].point + Offset(-5, -25)));
+        }
       }
     }
   }
@@ -155,13 +157,16 @@ class ArcSketcher extends CustomPainter {
           textAlign: TextAlign.left,
           textDirection: TextDirection.ltr);
       tp.layout();
-      // special theta to find the tangent which the label should sit on.
-      var theta1 = (atan(deltaY / deltaX) + pi / 2);
-      var textLabelTranslation = Offset.fromDirection(theta1, 10);
-      var textLabelOffset = Offset.fromDirection(theta, distance / 2).translate(
-          arcs[i].point1.dx + textLabelTranslation.dx,
-          arcs[i].point1.dy + textLabelTranslation.dy);
-      tp.paint(canvas, textLabelOffset);
+      // if there is a weight of 1 then there should be no label
+      if (arcs[i].weight == 0) {
+        // special theta to find the tangent which the label should sit on.
+        var theta1 = (atan(deltaY / deltaX) + pi / 2);
+        var textLabelTranslation = Offset.fromDirection(theta1, 10);
+        var textLabelOffset = Offset.fromDirection(theta, distance / 2)
+            .translate(arcs[i].point1.dx + textLabelTranslation.dx,
+                arcs[i].point1.dy + textLabelTranslation.dy);
+        tp.paint(canvas, textLabelOffset);
+      }
       canvas.drawPath(path, paint);
     }
   }
