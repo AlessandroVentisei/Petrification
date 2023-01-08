@@ -2,6 +2,7 @@ import 'dart:convert';
 import 'dart:html' as html;
 
 import 'package:drawing_app/currentMarking.dart';
+import 'package:drawing_app/photonic_mapper.dart';
 import 'package:drawing_app/simulate_net.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
@@ -37,11 +38,13 @@ class BuildingState extends State<Building> {
   List<DrawnJunction> drawnJunctions = <DrawnJunction>[];
   DrawnJunction hoverJunction;
   bool circuitPage;
+  bool showHover;
 
   @override
   initState() {
     super.initState();
     circuitPage = false;
+    showHover = true;
     selectedPhotonicShape = "4-Port";
   }
 
@@ -85,21 +88,42 @@ class BuildingState extends State<Building> {
                 child: CustomPaint(
                     painter: DrawAllJunctions(
                         junctions: drawnJunctions,
-                        hoverJunction: DrawnJunction(
-                            Offset(x, y), selectedPhotonicShape)))),
+                        hoverJunction: (showHover)
+                            ? DrawnJunction(
+                                Offset(x, y), selectedPhotonicShape, "hover")
+                            : DrawnJunction(Offset(-200, -200),
+                                selectedPhotonicShape, "hover")))),
           ),
         ));
   }
 
   void _updateLocation(PointerEvent details) {
+    var mouseDx = details.localPosition.dx - 100;
+    var mouseDy = details.localPosition.dy;
+    var junctionsWithin100px;
+    // print(mouseDx);
+    if (selectedPhotonicShape == "2-Port") {
+      junctionsWithin100px = drawnJunctions.where(((element) =>
+          ((element.point.dx - mouseDx).abs() < 100 &&
+              (element.point.dy - mouseDy).abs() < 200)));
+    } else {
+      junctionsWithin100px = drawnJunctions.where(((element) =>
+          ((element.point.dx - mouseDx).abs() < 200 &&
+              (element.point.dy - mouseDy).abs() < 200)));
+    }
     // TODO validate the placement of junctions here
     // 1) no 4-port placed within 100 px of eachother.
-    // 2) no standalong junctions if the drawnJunctions array is non-empty.
-    // 3) junctions must align either in dx or dy so the ports match up
-    setState(() {
-      this.x = ((details.localPosition.dx - 100) ~/ 25.0) * 25.0;
-      this.y = ((details.localPosition.dy) ~/ 25.0) * 25.0;
-    });
+    if (junctionsWithin100px.length == 0) {
+      setState(() {
+        showHover = true;
+        this.x = ((mouseDx) / 25.0).round() * 25.0;
+        this.y = ((mouseDy) / 25.0).round() * 25.0;
+      });
+    } else {
+      setState(() {
+        showHover = false;
+      });
+    }
   }
 
   Widget buildCurrentArc(BuildContext context) {
@@ -127,13 +151,23 @@ class BuildingState extends State<Building> {
   void onTapPhotonic(details) {
     RenderBox box = context.findRenderObject();
     Offset point = box.globalToLocal(details.globalPosition);
-    point = (point ~/ 25) * 25;
+    double pointx = (point.dx / 25).roundToDouble() * 25.0;
+    double pointy = (point.dy / 25).roundToDouble() * 25.0;
+
     print(drawnJunctions);
-    setState(() {
-      this.drawnJunctions.add(DrawnJunction(
-          Offset(point.dx - 100, point.dy), selectedPhotonicShape));
-    });
-    // add a junction of the type selectedPhotonicShape with position of point
+    if (showHover) {
+      // showHover is also acting as a validation indicator...
+      List<JunctionConnection> currentJunctionConnections =
+          junctionConnections(drawnJunctions, pointx, pointy);
+      setState(() {
+        // add the photonic Junction to a list of drawnJunctions here and setState to redraw.
+        this.drawnJunctions.add(DrawnJunction(
+            Offset(pointx - 100, pointy),
+            selectedPhotonicShape,
+            drawnJunctions.length.toString(),
+            currentJunctionConnections));
+      });
+    }
   }
 
   Widget buildAllArcs(BuildContext context) {
@@ -209,7 +243,8 @@ class BuildingState extends State<Building> {
           buildStateButton(circuitPage),
           buildPhotonicShapeButton("4-Port"),
           buildPhotonicShapeButton("3-Port"),
-          buildPhotonicShapeButton("2-Port")
+          buildPhotonicShapeButton("2-Port"),
+          buildPhotonicShapeButton("Create PN")
         ],
       ),
     );
@@ -251,10 +286,32 @@ class BuildingState extends State<Building> {
         child: Container(
           child: Text(string, style: TextStyle(fontSize: 8)),
         ),
-        onPressed: () {
-          setState(() {
-            selectedPhotonicShape = string;
-          });
+        onPressed: () async {
+          if (string != "Create PN") {
+            setState(() {
+              selectedPhotonicShape = string;
+            });
+          } else {
+            // run the create Photonic Simulation Map Function
+            var photonicMap = structPlotter(drawnJunctions);
+            final pnLayout = pnPlotter(photonicMap);
+            // Hand this off to the PN creation tool
+            await saveDialog(context);
+            final bytes = utf8.encode(jsonEncode(pnLayout));
+            final blob = html.Blob([bytes]);
+            final url = html.Url.createObjectUrlFromBlob(blob);
+            final anchor =
+                html.document.createElement('a') as html.AnchorElement
+                  ..href = url
+                  ..style.display = 'none'
+                  ..download = fileName + ".txt";
+            html.document.body.children.add(anchor);
+            // download
+            anchor.click();
+            // cleanup
+            html.document.body.children.remove(anchor);
+            html.Url.revokeObjectUrl(url);
+          }
         },
       ),
     );
@@ -477,8 +534,8 @@ class BuildingState extends State<Building> {
         final conflictTest =
             conflictTesting(currentArc.point2, drawnPoints, drawnPlaces);
         if (conflictTest != "freeSpace") {
-          // await displayArcDialog(context);
-          codeDialog = 1;
+          await displayArcDialog(context);
+          // codeDialog = 1;
           if (codeDialog == 0) {
             return;
           } else {

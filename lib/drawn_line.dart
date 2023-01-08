@@ -71,5 +71,16 @@ class DrawnArc {
 class DrawnJunction {
   Offset point;
   String shape;
-  DrawnJunction(this.point, this.shape);
+  String serial;
+  List<JunctionConnection> junctionConnections;
+
+  DrawnJunction(this.point, this.shape, this.serial,
+      [this.junctionConnections]);
+}
+
+class JunctionConnection {
+  String junction; // serial of the junction being connected to...
+  int outPort; // the port that is being connected from.
+  int inPort; // the port that is being connected to.
+  JunctionConnection(this.junction, this.outPort, this.inPort);
 }
