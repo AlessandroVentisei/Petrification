@@ -277,14 +277,21 @@ drawConnections(List<Map<String, dynamic>> connections, List<int> index, x, y,
   List<DrawnArc> connectingArcs = [];
   List<DrawnPoint> transitions = [];
   // add transitions to new connection
-  for (int l = 0; l < 4; l++) {
-    var pos = l * 75;
-    transitions.add(DrawnPoint(Offset(initPoint.dx - 25, initPoint.dy + pos),
-        "Transition", Color.fromARGB(255, 0, 0, 0)));
-    transitions.add(DrawnPoint(
-        Offset(initPoint.dx - 25, initPoint.dy + (pos + 25)),
-        "Transition",
-        Color.fromARGB(255, 0, 0, 0)));
+  if (connections.length != 0) {
+    // don't add the places for the first junction
+    for (int l = 0; l < 4; l++) {
+      var pos = l * 75;
+      connectingArcs.add(DrawnArc(
+          Offset(initPoint.dx - 25, initPoint.dy + pos),
+          Offset(initPoint.dx, initPoint.dy + pos),
+          Color.fromARGB(255, 0, 0, 0),
+          1));
+      connectingArcs.add(DrawnArc(
+          Offset(initPoint.dx - 25, initPoint.dy + pos + 25),
+          Offset(initPoint.dx, initPoint.dy + pos + 25),
+          Color.fromARGB(255, 0, 0, 0),
+          1));
+    }
   }
   // now draw the arcs to connect these up
   for (int a = 0; a < connections.length; a++) {
@@ -298,12 +305,10 @@ drawConnections(List<Map<String, dynamic>> connections, List<int> index, x, y,
     var outputPort = connections[a]["connection"].outPort;
     // port being connected to
     var inputPort = connections[a]["connection"].inPort;
-    var yCalib = index[a] * 300;
+    // we need to calibrate the connection's y-axis info.
+    // index a gives an integer value for the offset (in blocks of 300px) of the junction in the y axis.
+    var yCalib = 200 + (index[a] * 300) - initPoint.dy;
     // brute forcing correct connections here
-    if (index[a] == 0 && initPoint.dy > 225) {
-      yCalib = -300;
-    }
-
     switch (outputPort) {
       case 1:
         arc1point1 = Offset(initPoint.dx - 75, initPoint.dy + yCalib);
@@ -326,22 +331,50 @@ drawConnections(List<Map<String, dynamic>> connections, List<int> index, x, y,
       case 1:
         arc1point2 = Offset(initPoint.dx - 25, initPoint.dy);
         arc2point2 = Offset(initPoint.dx - 25, initPoint.dy + 25);
+        transitions.add(DrawnPoint(Offset(initPoint.dx - 25, initPoint.dy),
+            "Transition", Color.fromARGB(255, 0, 0, 0)));
+        transitions.add(DrawnPoint(Offset(initPoint.dx - 25, initPoint.dy + 25),
+            "Transition", Color.fromARGB(255, 0, 0, 0)));
         break;
       case 2:
         arc1point2 = Offset(initPoint.dx - 25, initPoint.dy + 75);
         arc2point2 = Offset(initPoint.dx - 25, initPoint.dy + 100);
+        transitions.add(DrawnPoint(Offset(initPoint.dx - 25, initPoint.dy + 75),
+            "Transition", Color.fromARGB(255, 0, 0, 0)));
+        transitions.add(DrawnPoint(
+            Offset(initPoint.dx - 25, initPoint.dy + 100),
+            "Transition",
+            Color.fromARGB(255, 0, 0, 0)));
         break;
       case 3:
         arc1point2 = Offset(initPoint.dx - 25, initPoint.dy + 150);
         arc2point2 = Offset(initPoint.dx - 25, initPoint.dy + 175);
+        transitions.add(DrawnPoint(
+            Offset(initPoint.dx - 25, initPoint.dy + 150),
+            "Transition",
+            Color.fromARGB(255, 0, 0, 0)));
+        transitions.add(DrawnPoint(
+            Offset(initPoint.dx - 25, initPoint.dy + 175),
+            "Transition",
+            Color.fromARGB(255, 0, 0, 0)));
         break;
       case 4:
         arc1point2 = Offset(initPoint.dx - 25, initPoint.dy + 225);
         arc2point2 = Offset(initPoint.dx - 25, initPoint.dy + 250);
+        transitions.add(DrawnPoint(
+            Offset(initPoint.dx - 25, initPoint.dy + 225),
+            "Transition",
+            Color.fromARGB(255, 0, 0, 0)));
+        transitions.add(DrawnPoint(
+            Offset(initPoint.dx - 25, initPoint.dy + 250),
+            "Transition",
+            Color.fromARGB(255, 0, 0, 0)));
         break;
     }
     connectingArcs
         .add(DrawnArc(arc1point1, arc1point2, Color.fromARGB(255, 0, 0, 0), 1));
+    connectingArcs
+        .add(DrawnArc(arc2point1, arc2point2, Color.fromARGB(255, 0, 0, 0), 1));
   }
   return [transitions, connectingArcs];
 }
