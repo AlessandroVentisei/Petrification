@@ -69,13 +69,31 @@ class DrawnArc {
 }
 
 class DrawnJunction {
-  Offset point;
-  String shape;
-  String serial;
-  List<JunctionConnection> junctionConnections;
-
+  Offset point; // offset of where it has been drawn.
+  String shape; // the selected shape.
+  String serial; // when was it drawn.
+  List<JunctionConnection>
+      junctionConnections; // a list of the other drawnJunctions it has been connected to.
   DrawnJunction(this.point, this.shape, this.serial,
       [this.junctionConnections]);
+}
+
+class DrawnLabel {
+  Offset offset;
+  String name;
+  DrawnLabel(this.offset, this.name);
+  Map<String, dynamic> toJson() {
+    return {
+      'offset': offset.dx.toString() + "," + offset.dy.toString(),
+      'name': name,
+    };
+  }
+
+  DrawnLabel.fromJson(json) {
+    var dxdy = json['offset'].split(",");
+    offset = Offset(double.parse(dxdy[0]), double.parse(dxdy[1]));
+    name = json['name'];
+  }
 }
 
 class JunctionConnection {

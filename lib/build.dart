@@ -26,6 +26,7 @@ class BuildingState extends State<Building> {
   List<DrawnPoint> drawnPoints = <DrawnPoint>[];
   List<Place> drawnPlaces = <Place>[];
   List<DrawnArc> drawnArcs = <DrawnArc>[];
+  List<DrawnLabel> drawnLabels = <DrawnLabel>[];
   DrawnArc currentArc;
   Color selectedColor = Colors.black;
   String selectedShape;
@@ -33,7 +34,7 @@ class BuildingState extends State<Building> {
   double x = 0.0;
   double y = 0.0;
   List<dynamic> currentMarking;
-  List<dynamic> currentDiffMatrix;
+  List<List<num>> currentDiffMatrix;
   Matrix2d m2d = Matrix2d();
   List<DrawnJunction> drawnJunctions = <DrawnJunction>[];
   DrawnJunction hoverJunction;
@@ -157,8 +158,8 @@ class BuildingState extends State<Building> {
     print(drawnJunctions);
     if (showHover) {
       // showHover is also acting as a validation indicator...
-      List<JunctionConnection> currentJunctionConnections =
-          junctionConnections(drawnJunctions, pointx, pointy);
+      List<JunctionConnection> currentJunctionConnections = junctionConnections(
+          drawnJunctions, pointx, pointy, selectedPhotonicShape);
       setState(() {
         // add the photonic Junction to a list of drawnJunctions here and setState to redraw.
         this.drawnJunctions.add(DrawnJunction(
@@ -196,9 +197,7 @@ class BuildingState extends State<Building> {
         alignment: Alignment.topLeft,
         child: CustomPaint(
           painter: Sketcher(
-            places: drawnPlaces,
-            points: drawnPoints,
-          ),
+              places: drawnPlaces, points: drawnPoints, labels: drawnLabels),
         ),
       ),
     );
@@ -345,9 +344,14 @@ class BuildingState extends State<Building> {
           child: Text(string, style: TextStyle(fontSize: 8)),
         ),
         onPressed: () {
-          setState(() {
+          const maxIterations = 20;
+          for (int i = 0; i < maxIterations; i++) {
+            // add in check for dead net.
             drawnPlaces =
                 simulateNet(drawnPlaces, drawnPoints, currentDiffMatrix);
+          }
+          setState(() {
+            drawnPlaces = drawnPlaces;
             drawnPoints = drawnPoints;
           });
         },
@@ -413,16 +417,20 @@ class BuildingState extends State<Building> {
             var transitions = jsonDecode(data["transitions"]);
             var places = jsonDecode(data["places"]);
             var arcs = jsonDecode(data["arcs"]);
+            var labels = jsonDecode(data["labels"]);
             List<DrawnPoint> fileDrawnPoints = List.generate(transitions.length,
                 (index) => DrawnPoint.fromJson(transitions[index]));
             List<Place> fileDrawnPlace = List.generate(
                 places.length, (index) => Place.fromJson(places[index]));
             List<DrawnArc> fileDrawnArc = List.generate(
                 arcs.length, (index) => DrawnArc.fromJson(arcs[index]));
+            List<DrawnLabel> fileDrawnLabels = List.generate(
+                labels.length, (index) => DrawnLabel.fromJson(labels[index]));
             setState(() {
               drawnPoints = fileDrawnPoints;
               drawnPlaces = fileDrawnPlace;
               drawnArcs = fileDrawnArc;
+              drawnLabels = fileDrawnLabels;
               currentDiffMatrix = differenceMatrixBuilder(
                   selectedShape, drawnArcs, drawnPoints, drawnPlaces);
             });
@@ -509,7 +517,7 @@ class BuildingState extends State<Building> {
                 child: Text('CANCEL'),
                 onPressed: () {
                   setState(() {
-                    valueText = "0";
+                    codeDialog = 0;
                     Navigator.pop(context);
                   });
                 },
@@ -553,7 +561,9 @@ class BuildingState extends State<Building> {
             currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor, 1);
           });
         }
-      } on Error {}
+      } catch (error) {
+        print(error);
+      }
     }
   }
 

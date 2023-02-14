@@ -3,6 +3,7 @@ import 'dart:io';
 import 'dart:ui';
 import 'dart:html' as html;
 import 'package:drawing_app/drawn_line.dart';
+import 'package:flutter/material.dart';
 
 final fourPortTxt = {
   "transitions":
@@ -17,9 +18,9 @@ var threePortTxt = {
   "transitions":
       "[{\"point\":\"225,225\",\"shape\":\"Transition\",\"color\":\"4278190080\"},{\"point\":\"225,250\",\"shape\":\"Transition\",\"color\":\"4278190080\"},{\"point\":\"225,300\",\"shape\":\"Transition\",\"color\":\"4278190080\"},{\"point\":\"225,325\",\"shape\":\"Transition\",\"color\":\"4278190080\"},{\"point\":\"225,400\",\"shape\":\"Transition\",\"color\":\"4278190080\"},{\"point\":\"225,375\",\"shape\":\"Transition\",\"color\":\"4278190080\"}]",
   "places":
-      "[{\"point\":\"200,225\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,250\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,300\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,325\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,375\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,400\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"350,225\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"350,250\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"350,300\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"350,325\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"350,375\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"350,400\",\"tokens\":\"0\",\"color\":\"4278190080\"}]",
+      "[{\"point\":\"200,225\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,250\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,300\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,325\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,375\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"200,400\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"425,225\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"425,250\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"425,300\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"425,325\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"425,375\",\"tokens\":\"0\",\"color\":\"4278190080\"},{\"point\":\"425,400\",\"tokens\":\"0\",\"color\":\"4278190080\"}]",
   "arcs":
-      "[{\"point1\":\"200,225\",\"point2\":\"225,225\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"200,250\",\"point2\":\"225,250\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"200,300\",\"point2\":\"225,300\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"200,325\",\"point2\":\"225,325\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"200,400\",\"point2\":\"225,400\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,225\",\"point2\":\"350,225\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,250\",\"point2\":\"350,250\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,300\",\"point2\":\"350,300\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,325\",\"point2\":\"350,325\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,400\",\"point2\":\"350,400\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,225\",\"point2\":\"350,325\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,250\",\"point2\":\"350,300\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,300\",\"point2\":\"350,250\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,325\",\"point2\":\"350,225\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,300\",\"point2\":\"350,400\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,325\",\"point2\":\"350,375\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,225\",\"point2\":\"350,400\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,250\",\"point2\":\"350,375\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,400\",\"point2\":\"350,300\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"200,375\",\"point2\":\"225,375\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,375\",\"point2\":\"350,375\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,375\",\"point2\":\"350,325\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,375\",\"point2\":\"350,250\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,400\",\"point2\":\"350,225\",\"weight\":\"2\",\"color\":\"4278190080\"}]"
+      "[{\"point1\":\"200,225\",\"point2\":\"225,225\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"200,250\",\"point2\":\"225,250\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"200,300\",\"point2\":\"225,300\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"200,325\",\"point2\":\"225,325\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"200,400\",\"point2\":\"225,400\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,225\",\"point2\":\"425,225\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,250\",\"point2\":\"425,250\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,300\",\"point2\":\"425,300\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,325\",\"point2\":\"425,325\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,400\",\"point2\":\"425,400\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,225\",\"point2\":\"425,325\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,250\",\"point2\":\"425,300\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,300\",\"point2\":\"425,250\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,325\",\"point2\":\"425,225\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,300\",\"point2\":\"425,400\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,325\",\"point2\":\"425,375\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,225\",\"point2\":\"425,400\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,250\",\"point2\":\"425,375\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,400\",\"point2\":\"425,300\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"200,375\",\"point2\":\"225,375\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,375\",\"point2\":\"425,375\",\"weight\":\"1\",\"color\":\"4278190080\"},{\"point1\":\"225,375\",\"point2\":\"425,325\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,375\",\"point2\":\"425,250\",\"weight\":\"2\",\"color\":\"4278190080\"},{\"point1\":\"225,400\",\"point2\":\"425,225\",\"weight\":\"2\",\"color\":\"4278190080\"}]"
 };
 
 final twoPortTxt = {
@@ -32,8 +33,8 @@ final twoPortTxt = {
 };
 
 // do this process for 4-port, 3-port, and 2-port...
-junctionConnections(
-    List<DrawnJunction> drawnJunctions, double pointx, double pointy) {
+junctionConnections(List<DrawnJunction> drawnJunctions, double pointx,
+    double pointy, String selectedPhotonicShape) {
   // if the junction is in line with another in the list then
   // it is a connection with the closest junctions it is in line with in the +x, +y, -x, -y.
   List<List<DrawnJunction>> closestXY = [[], [], [], []]; // [+X,-X,+Y,-Y]
@@ -80,12 +81,15 @@ junctionConnections(
         break;
     }
     if (closestXY[i].length != 0) {
-      connections
-          .add(JunctionConnection(closestXY[i].first.serial, output, input));
       // grab junction being connected to.
       DrawnJunction connectedJunction = drawnJunctions
           .where((element) => element.point == closestXY[i][0].point)
           .first;
+      if (selectedPhotonicShape == "3-Port") {
+        output += -1;
+      }
+      connections
+          .add(JunctionConnection(closestXY[i].first.serial, output, input));
       // reversed input/output labels
       connectedJunction.junctionConnections.add(JunctionConnection(
           (drawnJunctions.length).toString(), input, output));
@@ -103,7 +107,7 @@ structPlotter(List<DrawnJunction> drawnJunctions) {
   ];
   List<DrawnJunction> newArray = [];
   List<DrawnJunction> oldArray = [initJunction];
-  int scatteringItterations = 5;
+  int scatteringItterations = 7;
 
   // 5 steps of scattering currently
   for (int s = 1; s < scatteringItterations; s++) {
@@ -134,7 +138,8 @@ pnPlotter(List<List<DrawnJunction>> map) {
   Map<String, List<dynamic>> pnFile = {
     "transitions": [],
     "places": [],
-    "arcs": []
+    "arcs": [],
+    "labels": []
   };
   List<DrawnJunction> newJunctions = [];
   List<DrawnJunction> oldJunctions = [];
@@ -152,15 +157,14 @@ pnPlotter(List<List<DrawnJunction>> map) {
       newJunctions = map[s];
       // handing in the map n-1 junctions
       currentJunction =
-          getJunction(x, y, map[s][i].shape, oldJunctions, map[s][i].serial);
-      //TODO: Create a method of linking the correct ports together?
-      // append the new junction into the pnFile map.
+          getJunction(x, y, map[s][i].shape, oldJunctions, map[s][i].serial, s);
       pnFile["transitions"] = [
         ...pnFile["transitions"],
         ...currentJunction["transitions"]
       ];
       pnFile["places"] = [...pnFile["places"], ...currentJunction["places"]];
       pnFile["arcs"] = [...pnFile["arcs"], ...currentJunction["arcs"]];
+      pnFile["labels"].add(currentJunction["labels"]);
     }
     // shift junctionConnections to previousStep's considerations.
     oldJunctions = newJunctions;
@@ -169,13 +173,14 @@ pnPlotter(List<List<DrawnJunction>> map) {
   Map<String, dynamic> stringDrawnPoints = {
     "transitions": json.encode(pnFile["transitions"]),
     "places": json.encode(pnFile["places"]),
-    "arcs": json.encode(pnFile["arcs"])
+    "arcs": json.encode(pnFile["arcs"]),
+    "labels": json.encode(pnFile["labels"])
   };
   return stringDrawnPoints;
 }
 
 getJunction(x, y, String junctionShape, List<DrawnJunction> prevJunctions,
-    String serialNum) {
+    String serialNum, int stepNum) {
   // return string for the new four-port junction to add into file.
   Map<String, String> junctionTxt;
   if (junctionShape == "4-Port") {
@@ -220,14 +225,14 @@ getJunction(x, y, String junctionShape, List<DrawnJunction> prevJunctions,
   // for some reason the y value is itterated instead of the x value?
   if (junctionShape == "3-Port") {
     DrawnPlaces.forEach((element) {
-      element.point = Offset(element.point.dx + 50, element.point.dy - 25);
+      element.point = Offset(element.point.dx + 50, element.point.dy + 50);
     });
     DrawnTransitions.forEach((element) {
-      element.point = Offset(element.point.dx + 50, element.point.dy - 25);
+      element.point = Offset(element.point.dx + 50, element.point.dy + 50);
     });
     DrawnArcs.forEach((element) {
-      element.point1 = Offset(element.point1.dx + 50, element.point1.dy - 25);
-      element.point2 = Offset(element.point2.dx + 50, element.point2.dy - 25);
+      element.point1 = Offset(element.point1.dx + 50, element.point1.dy + 50);
+      element.point2 = Offset(element.point2.dx + 50, element.point2.dy + 50);
     });
   }
   if (junctionShape == "2-Port") {
@@ -251,13 +256,23 @@ getJunction(x, y, String junctionShape, List<DrawnJunction> prevJunctions,
   DrawnArcs.forEach((element) {
     element.point1 = Offset(element.point1.dx + x, element.point1.dy + y);
     element.point2 = Offset(element.point2.dx + x, element.point2.dy + y);
+    if (element.point1.dx == DrawnPlaces.first.point.dx) {
+      element.weight = 1;
+    } /*else if (junctionShape == "3-Port") {
+      element.weight = element.weight * 0.33;
+    } else if (junctionShape == "4-Port") {
+      element.weight = element.weight * 0.5;
+    }*/
   });
-
-  // used to calibrate connection
   var initPoint = DrawnPlaces.first.point;
+  var labelPoint = Offset(initPoint.dx + 100, initPoint.dy - 25);
+  // add a cheeky label into the mix.
+  DrawnLabel label = DrawnLabel(labelPoint, junctionShape + serialNum);
+  // used to calibrate connection
   // [[Transitions for Connection], [Arcs for Connection]]
   // this section currently only works for a couple of connected four port cases.
-  var connectingArcs = drawConnections(connections, index, x, y, initPoint);
+  var connectingArcs =
+      drawConnections(connections, index, x, y, initPoint, stepNum);
 
   DrawnTransitions.addAll(connectingArcs[0]);
   DrawnArcs.addAll(connectingArcs[1]);
@@ -266,14 +281,15 @@ getJunction(x, y, String junctionShape, List<DrawnJunction> prevJunctions,
   Map<String, dynamic> stringDrawnPoints = {
     "transitions": DrawnTransitions,
     "places": DrawnPlaces,
-    "arcs": DrawnArcs
+    "arcs": DrawnArcs,
+    "labels": label
   };
 
   return stringDrawnPoints;
 }
 
 drawConnections(List<Map<String, dynamic>> connections, List<int> index, x, y,
-    Offset initPoint) {
+    Offset initPoint, int stepNum) {
   List<DrawnArc> connectingArcs = [];
   List<DrawnPoint> transitions = [];
   // add transitions to new connection
@@ -299,12 +315,11 @@ drawConnections(List<Map<String, dynamic>> connections, List<int> index, x, y,
     var arc1point2;
     var arc2point1;
     var arc2point2;
-    // using the index to determine where the arrow needs to come from
-    var outputY = y + index[a];
     // port being connected from
     var outputPort = connections[a]["connection"].outPort;
     // port being connected to
     var inputPort = connections[a]["connection"].inPort;
+    var connectionSerial = connections[a]["connection"].junction;
     // we need to calibrate the connection's y-axis info.
     // index a gives an integer value for the offset (in blocks of 300px) of the junction in the y axis.
     var yCalib = 200 + (index[a] * 300) - initPoint.dy;
@@ -371,6 +386,8 @@ drawConnections(List<Map<String, dynamic>> connections, List<int> index, x, y,
             Color.fromARGB(255, 0, 0, 0)));
         break;
     }
+
+    // var arcWeights = stepNum;
     connectingArcs
         .add(DrawnArc(arc1point1, arc1point2, Color.fromARGB(255, 0, 0, 0), 1));
     connectingArcs

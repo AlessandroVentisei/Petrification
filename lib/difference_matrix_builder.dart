@@ -17,18 +17,21 @@ List<dynamic> differenceMatrixBuilder(
     "Transition": drawnPoints.length
   };
   Matrix2d m2d = Matrix2d();
-  List<dynamic> diffMatrix =
-      m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
-  List<dynamic> diffMatrixPlus =
-      m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
-  List<dynamic> diffMatrixMinus =
-      m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
+  // m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
+  List<List<num>> diffMatrixPlus = List.generate(objectMatrix["Place"],
+      (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
+  // m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
+  List<List<num>> diffMatrixMinus = List.generate(objectMatrix["Place"],
+      (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
 
   for (int i = 0; i < drawnArcs.length; i++) {
     differenceMatrixBuilderCurrentArc(objectMatrix, selectedShape, drawnPoints,
         drawnPlaces, drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
   }
-  diffMatrix = m2d.subtraction(diffMatrixPlus, diffMatrixMinus);
+  List<List<num>> diffMatrix = List.generate(
+      objectMatrix["Place"],
+      (p) => List.generate(objectMatrix["Transition"],
+          (t) => (diffMatrixPlus[p][t] - diffMatrixMinus[p][t])));
   return diffMatrix;
 }
 
@@ -38,17 +41,19 @@ List<dynamic> differenceMatrixBuilderCurrentArc(
     drawnPoints,
     List<Place> drawnPlaces,
     DrawnArc currentArc,
-    diffMatrixPlus,
-    diffMatrixMinus) {
+    List<List<num>> diffMatrixPlus,
+    List<List<num>> diffMatrixMinus) {
   List<dynamic> loc;
   //This function will first compare the current arc to drawn places to find points connected.
   //currentArc.point1 must = a drawnPoints.point
   loc = pointFinder(drawnPoints, drawnPlaces, currentArc);
   if (loc[2] == "Place") {
-    diffMatrixMinus[loc[0]][loc[1]] += currentArc.weight;
+    diffMatrixMinus[loc[0]][loc[1]] =
+        diffMatrixMinus[loc[0]][loc[1]] + currentArc.weight;
   }
   if (loc[2] == "Transition") {
-    diffMatrixPlus[loc[1]][loc[0]] += currentArc.weight;
+    diffMatrixPlus[loc[1]][loc[0]] =
+        diffMatrixPlus[loc[1]][loc[0]] + currentArc.weight;
   }
   return [diffMatrixMinus, diffMatrixPlus];
 }
@@ -79,29 +84,6 @@ List<dynamic> pointFinder(drawnPoints, drawnPlaces, currentArc) {
       inputPointer = i;
     }
   }
-  /*
-  for (int i = 0; i < drawnPoints.length; ++i) {
-    if (drawnPoints[i].shape == "Place") {
-      numPlaces += 1;
-      if (currentArc.point1 == drawnPoints[i].point) {
-        outputPointer = numPlaces - 1;
-        outputShape = drawnPoints[i].shape;
-      }
-      if (currentArc.point2 == drawnPoints[i].point) {
-        inputPointer = numPlaces - 1;
-      }
-    }
-    if (drawnPoints[i].shape == "Transition") {
-      numTrans += 1;
-      if (currentArc.point1 == drawnPoints[i].point) {
-        outputPointer = numTrans - 1;
-        outputShape = drawnPoints[i].shape;
-      }
-      if (currentArc.point2 == drawnPoints[i].point) {
-        inputPointer = numTrans - 1;
-      }
-    }
-  }*/
   return [outputPointer, inputPointer, outputShape];
 }
 

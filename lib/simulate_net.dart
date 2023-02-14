@@ -1,10 +1,8 @@
 import 'dart:io';
-
 import 'package:drawing_app/drawn_line.dart';
-import 'package:flutter/material.dart';
-import 'package:matrix2d/matrix2d.dart';
 
-simulateNet(List<Place> drawnPlaces, List<DrawnPoint> drawnPoints, diffMatrix) {
+simulateNet(List<Place> drawnPlaces, List<DrawnPoint> drawnPoints,
+    List<List<num>> diffMatrix) {
   final marking = List<num>.generate(
       drawnPlaces.length, (index) => drawnPlaces[index].tokens);
   final objectMatrix = {
@@ -13,9 +11,10 @@ simulateNet(List<Place> drawnPlaces, List<DrawnPoint> drawnPoints, diffMatrix) {
   };
   List<int> liveTransitions =
       liveTranstisions(marking, diffMatrix, objectMatrix);
-  //NextMarking = ([TransitionMatrix]*[DiffMatrix]) + Marking
-  List<dynamic> newMarking = Matrix2d()
-      .addition(matrixMultiplication(liveTransitions, diffMatrix), marking);
+  final newMarking = List.generate(
+      marking.length,
+      (i) =>
+          (matrixMultiplication(liveTransitions, diffMatrix))[i] + marking[i]);
   print("Next Marking: " + newMarking.toString());
   for (int i = 0; i < drawnPlaces.length; i++) {
     drawnPlaces[i].tokens = newMarking[i];
@@ -23,8 +22,8 @@ simulateNet(List<Place> drawnPlaces, List<DrawnPoint> drawnPoints, diffMatrix) {
   return drawnPlaces;
 }
 
-List<int> matrixMultiplication(m1, m2) {
-  List<int> multiple = List.generate(m2.length, (index) => 0);
+List<num> matrixMultiplication(m1, m2) {
+  List<num> multiple = List.generate(m2.length, (index) => 0);
   for (int i = 0; i < m2.length; i++) {
     for (int j = 0; j < m1.length; j++) {
       multiple[i] += (m1[j] * m2[i][j]);
@@ -36,32 +35,33 @@ List<int> matrixMultiplication(m1, m2) {
 List<int> liveTranstisions(currentMarking, diffMatrix, matrices) {
   // check if tokens are present in the current marking to enable transitions.
   // enabled if a place contains enough tokens to prevent the difference matrix from outputting any negative values.
-  final m2d = Matrix2d();
-  List<int> liveTransitions = List.filled((matrices["Transition"]), 0);
-  List<dynamic> conditionalMatrix =
-      m2d.zeros(diffMatrix[0].length, currentMarking.length);
-  // List<int> conditionalMatrix = List.filled(matrices["Place"], 0);
-  for (var i = 0; i < diffMatrix[0].length; i++) {
-    for (var j = 0; j < currentMarking.length; j++) {
-      conditionalMatrix[i][j] = currentMarking[j] + diffMatrix[j][i];
-    }
-    if (checkIfEnabled(conditionalMatrix[i])) {
-      print("Transition " + (i).toString() + " ENABLED");
-      liveTransitions[i] = 1;
+  // List<int> liveTransitions = List.filled((matrices["Transition"]), 0);
+  List<List<num>> conditionalMatrix = List.generate(
+      diffMatrix[0].length,
+      (i) => List.generate(currentMarking.length,
+          (j) => (currentMarking[j] + diffMatrix[j][i])));
+  List<int> liveTransitions = List.generate((matrices["Transition"]), (index) {
+    var transitionEnabled = conditionalMatrix[index].singleWhere(
+      (element) {
+        return element < 0;
+      },
+      orElse: () => 1,
+    );
+    if (transitionEnabled == 1) {
+      print("transition " + index.toString() + "enabled");
+      return 1;
     } else {
-      print("Transition " + (i).toString() + " DISABLED");
+      return 0;
     }
-  }
+  });
   return liveTransitions;
 }
 
-bool checkIfEnabled(currentRow) {
-  for (var i = 0; i < currentRow.length; i++) {
-    if (currentRow[i] < 0) {
-      return false;
-      //found a negative value in the current row -> transition not enabled.
-    }
+int checkIfEnabled(List<num> currentRow) {
+  var disabledSignal = currentRow.where((element) => element < 0);
+  if (disabledSignal.length > 0) {
+    return 1;
+  } else {
+    return 0;
   }
-  return true;
-  //found no negative values in current row -> transition enabled.
 }

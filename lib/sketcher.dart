@@ -8,14 +8,28 @@ class Sketcher extends CustomPainter {
   final List<DrawnPoint> points;
   final List<Place> places;
   final List<DrawnArc> arcs;
+  final List<DrawnLabel> labels;
 
-  Sketcher({this.points, this.places, this.arcs});
+  Sketcher({this.points, this.places, this.arcs, this.labels});
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
       ..color = Colors.redAccent
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5.0;
+    for (int i = 0; i < labels.length; i++) {
+      if (labels[i] == null) continue;
+      TextSpan span = new TextSpan(
+          style: new TextStyle(color: Colors.black),
+          text: labels[i].name.toString());
+      TextPainter tp = new TextPainter(
+          text: span,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr);
+      tp.layout();
+      var textLabelOffset = labels[i].offset;
+      tp.paint(canvas, textLabelOffset);
+    }
     for (int i = 0; i < points.length; ++i) {
       if (points[i] == null) continue;
       paint.color = points[i].color;
@@ -215,7 +229,7 @@ class ArcSketcher extends CustomPainter {
           textDirection: TextDirection.ltr);
       tp.layout();
       // if there is a weight of 1 then there should be no label
-      if (arcs[i].weight == 0) {
+      if (arcs[i].weight != 1) {
         // special theta to find the tangent which the label should sit on.
         var theta1 = (atan(deltaY / deltaX) + pi / 2);
         var textLabelTranslation = Offset.fromDirection(theta1, 10);
