@@ -1,5 +1,6 @@
 import 'dart:convert';
 import 'dart:html' as html;
+import 'dart:ui';
 
 import 'package:drawing_app/currentMarking.dart';
 import 'package:drawing_app/photonic_mapper.dart';
@@ -7,6 +8,7 @@ import 'package:drawing_app/simulate_net.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:syncfusion_flutter_charts/charts.dart';
 import './sketcher.dart';
 import './drawn_line.dart';
 import 'package:flutter/rendering.dart';
@@ -14,6 +16,7 @@ import 'dart:async';
 import 'package:matrix2d/matrix2d.dart';
 import './difference_matrix_builder.dart';
 import 'package:file_picker_web/file_picker_web.dart' as webPicker;
+import './histogram_plots.dart';
 
 class Building extends StatefulWidget {
   @override
@@ -27,6 +30,7 @@ class BuildingState extends State<Building> {
   List<Place> drawnPlaces = <Place>[];
   List<DrawnArc> drawnArcs = <DrawnArc>[];
   List<DrawnLabel> drawnLabels = <DrawnLabel>[];
+  List<Place> drawnOutputPlaces = [];
   DrawnArc currentArc;
   Color selectedColor = Colors.black;
   String selectedShape;
@@ -34,7 +38,7 @@ class BuildingState extends State<Building> {
   double x = 0.0;
   double y = 0.0;
   List<dynamic> currentMarking;
-  List<List<num>> currentDiffMatrix;
+  List<List<double>> currentDiffMatrix;
   Matrix2d m2d = Matrix2d();
   List<DrawnJunction> drawnJunctions = <DrawnJunction>[];
   DrawnJunction hoverJunction;
@@ -222,7 +226,8 @@ class BuildingState extends State<Building> {
           buildShapeButton("Delete"),
           buildSimulateButton("Simulate"),
           buildSaveButton("Save"),
-          buildUploadButton("Upload")
+          buildUploadButton("Upload"),
+          buildGraphButton("ShowGraph")
         ],
       ),
     );
@@ -334,6 +339,26 @@ class BuildingState extends State<Building> {
     );
   }
 
+  Widget buildGraphButton(String string) {
+    return Padding(
+      padding: const EdgeInsets.all(4.0),
+      child: FloatingActionButton(
+        mini: false,
+        backgroundColor: Colors.black,
+        child: Container(
+          child: Text(string, style: TextStyle(fontSize: 8)),
+        ),
+        onPressed: () {
+          int maxIterations = 20;
+          List<Iterable<SfCartesianChart>> histograms =
+              createPlotsFromOutputPlaces(
+                  context, drawnOutputPlaces, maxIterations);
+          displayHistograms(context, histograms);
+        },
+      ),
+    );
+  }
+
   Widget buildSimulateButton(String string) {
     return Padding(
       padding: const EdgeInsets.all(4.0),
@@ -350,9 +375,22 @@ class BuildingState extends State<Building> {
             drawnPlaces =
                 simulateNet(drawnPlaces, drawnPoints, currentDiffMatrix);
           }
+          // horrible bit of code to update drawnOutputPlaces with the drawnPlaces token values.
+          drawnOutputPlaces = drawnPlaces
+              .where((element) =>
+                  drawnOutputPlaces
+                      .where(
+                          (outputPlace) => outputPlace.point == element.point)
+                      .length ==
+                  1)
+              .toList();
+          // now we can plot each histogram, as long as we can group the places into junctions.
+
+          // add in a function here to count output tokens in places.
           setState(() {
             drawnPlaces = drawnPlaces;
             drawnPoints = drawnPoints;
+            drawnOutputPlaces = drawnOutputPlaces;
           });
         },
       ),
@@ -416,10 +454,13 @@ class BuildingState extends State<Building> {
             Map<String, dynamic> data = jsonDecode(reader.result);
             var transitions = jsonDecode(data["transitions"]);
             var places = jsonDecode(data["places"]);
+            var outputPlaces = jsonDecode(data["outputPlaces"]);
             var arcs = jsonDecode(data["arcs"]);
             var labels = jsonDecode(data["labels"]);
             List<DrawnPoint> fileDrawnPoints = List.generate(transitions.length,
                 (index) => DrawnPoint.fromJson(transitions[index]));
+            List<Place> fileOutputPlaces = List.generate(outputPlaces.length,
+                (index) => Place.fromJson(outputPlaces[index]));
             List<Place> fileDrawnPlace = List.generate(
                 places.length, (index) => Place.fromJson(places[index]));
             List<DrawnArc> fileDrawnArc = List.generate(
@@ -428,6 +469,7 @@ class BuildingState extends State<Building> {
                 labels.length, (index) => DrawnLabel.fromJson(labels[index]));
             setState(() {
               drawnPoints = fileDrawnPoints;
+              drawnOutputPlaces = fileOutputPlaces;
               drawnPlaces = fileDrawnPlace;
               drawnArcs = fileDrawnArc;
               drawnLabels = fileDrawnLabels;
@@ -658,6 +700,84 @@ class BuildingState extends State<Building> {
       return "transTap";
     }
     return "freeSpace";
+  }
+
+  var scr = new GlobalKey();
+  displayHistograms(
+      BuildContext context, List<Iterable<SfCartesianChart>> charts) async {
+    return showDialog(
+        context: context,
+        builder: (context) {
+          return AlertDialog(
+            title: Text('PN Output Port Histograms'),
+            content: Container(
+                height: window.physicalSize.height * 0.4,
+                width: window.physicalSize.width * 0.4,
+                // the List of Iterable SfCartesianCharts needs to be mapped twice
+                // one mapping into a column for each itteration of scattering, and another to create a gridview box for each graph.
+                child: SingleChildScrollView(
+                    child: RepaintBoundary(
+                        key: scr,
+                        child: Column(
+                            children: charts
+                                .map((e) => Column(children: [
+                                      Text("Scattering Iteration: " +
+                                          (charts.indexOf(e) + 1).toString()),
+                                      GridView.count(
+                                          shrinkWrap: true,
+                                          primary: false,
+                                          padding: const EdgeInsets.all(20),
+                                          crossAxisSpacing: 10,
+                                          mainAxisSpacing: 10,
+                                          crossAxisCount: 3,
+                                          children: e
+                                              .map((e) => Container(child: e))
+                                              .toList())
+                                    ]))
+                                .toList())))),
+            actions: <Widget>[
+              TextButton(
+                child: Text('CANCEL'),
+                onPressed: () {
+                  setState(() {
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+              TextButton(
+                child: Text('OK'),
+                onPressed: () {
+                  setState(() {
+                    Navigator.pop(context);
+                  });
+                },
+              ),
+              TextButton(
+                  onPressed: () async {
+                    RenderRepaintBoundary boundary =
+                        scr.currentContext.findRenderObject();
+                    var image = await boundary.toImage();
+                    var byteData =
+                        await image.toByteData(format: ImageByteFormat.png);
+                    var pngBytes = byteData.buffer.asUint8List();
+                    final blob = html.Blob([pngBytes]);
+                    final url = html.Url.createObjectUrlFromBlob(blob);
+                    final anchor =
+                        html.document.createElement('a') as html.AnchorElement
+                          ..href = url
+                          ..style.display = 'none'
+                          ..download = "fileName" + ".png";
+                    html.document.body.children.add(anchor);
+                    // download
+                    anchor.click();
+                    // cleanup
+                    html.document.body.children.remove(anchor);
+                    html.Url.revokeObjectUrl(url);
+                  },
+                  child: Text('Export Screenshot'))
+            ],
+          );
+        });
   }
 
   TextEditingController _saveFileController = TextEditingController();

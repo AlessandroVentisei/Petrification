@@ -9,14 +9,13 @@ import 'package:matrix2d/matrix2d.dart';
 // labels are too difficult to make out and they should be able to be disabled.
 // make the token question part of the UI instead of a popup box
 
-List<dynamic> differenceMatrixBuilder(
+List<List<double>> differenceMatrixBuilder(
     selectedShape, drawnArcs, drawnPoints, drawnPlaces) {
   // integrate drawnPlaces with the differenceMatrixBuilder.
   final objectMatrix = {
     "Place": drawnPlaces.length,
     "Transition": drawnPoints.length
   };
-  Matrix2d m2d = Matrix2d();
   // m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
   List<List<num>> diffMatrixPlus = List.generate(objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
@@ -24,11 +23,16 @@ List<dynamic> differenceMatrixBuilder(
   List<List<num>> diffMatrixMinus = List.generate(objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
 
+  final stopwatch = Stopwatch();
+  stopwatch.start();
   for (int i = 0; i < drawnArcs.length; i++) {
     differenceMatrixBuilderCurrentArc(objectMatrix, selectedShape, drawnPoints,
         drawnPlaces, drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
   }
-  List<List<num>> diffMatrix = List.generate(
+  stopwatch.stop();
+  print("time to build difference matrix: " +
+      stopwatch.elapsedMilliseconds.toString());
+  List<List<double>> diffMatrix = List.generate(
       objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"],
           (t) => (diffMatrixPlus[p][t] - diffMatrixMinus[p][t])));
@@ -61,8 +65,6 @@ List<dynamic> differenceMatrixBuilderCurrentArc(
 List<dynamic> pointFinder(drawnPoints, drawnPlaces, currentArc) {
   int outputPointer = 0;
   int inputPointer = 0;
-  int numPlaces = 0;
-  int numTrans = 0;
   String outputShape;
   // this loops through the points drawn and gives the placeNum
   // and transition num of the arc

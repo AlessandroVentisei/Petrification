@@ -107,7 +107,7 @@ structPlotter(List<DrawnJunction> drawnJunctions) {
   ];
   List<DrawnJunction> newArray = [];
   List<DrawnJunction> oldArray = [initJunction];
-  int scatteringItterations = 7;
+  int scatteringItterations = 15;
 
   // 5 steps of scattering currently
   for (int s = 1; s < scatteringItterations; s++) {
@@ -139,12 +139,14 @@ pnPlotter(List<List<DrawnJunction>> map) {
     "transitions": [],
     "places": [],
     "arcs": [],
-    "labels": []
+    "labels": [],
+    "outputPlaces": []
   };
   List<DrawnJunction> newJunctions = [];
   List<DrawnJunction> oldJunctions = [];
   var x = 0;
   var y = 0;
+  List<Place> outputPlaces = [];
   Map<String, dynamic> currentJunction;
   for (int s = 0; s < map.length; s++) {
     for (int i = 0; i < map[s].length; i++) {
@@ -158,6 +160,8 @@ pnPlotter(List<List<DrawnJunction>> map) {
       // handing in the map n-1 junctions
       currentJunction =
           getJunction(x, y, map[s][i].shape, oldJunctions, map[s][i].serial, s);
+      // get just the output places in the current junction.
+      outputPlaces = getOutputPlaces(currentJunction);
       pnFile["transitions"] = [
         ...pnFile["transitions"],
         ...currentJunction["transitions"]
@@ -165,6 +169,7 @@ pnPlotter(List<List<DrawnJunction>> map) {
       pnFile["places"] = [...pnFile["places"], ...currentJunction["places"]];
       pnFile["arcs"] = [...pnFile["arcs"], ...currentJunction["arcs"]];
       pnFile["labels"].add(currentJunction["labels"]);
+      pnFile["outputPlaces"].addAll(outputPlaces);
     }
     // shift junctionConnections to previousStep's considerations.
     oldJunctions = newJunctions;
@@ -174,9 +179,21 @@ pnPlotter(List<List<DrawnJunction>> map) {
     "transitions": json.encode(pnFile["transitions"]),
     "places": json.encode(pnFile["places"]),
     "arcs": json.encode(pnFile["arcs"]),
-    "labels": json.encode(pnFile["labels"])
+    "labels": json.encode(pnFile["labels"]),
+    "outputPlaces": json.encode(pnFile["outputPlaces"])
   };
   return stringDrawnPoints;
+}
+
+getOutputPlaces(Map<String, dynamic> currentJunction) {
+  List<Place> outputPlaces = [];
+  // goes through places from generated junction and finds the output row
+  List<Place> places = currentJunction["places"];
+  // grabbing the first place to get a left-most limit.
+  var initPoint = currentJunction["places"][0].point;
+  outputPlaces =
+      places.where((index) => index.point.dx > initPoint.dx).toList();
+  return outputPlaces;
 }
 
 getJunction(x, y, String junctionShape, List<DrawnJunction> prevJunctions,
