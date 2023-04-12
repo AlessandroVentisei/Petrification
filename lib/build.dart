@@ -1,8 +1,7 @@
 import 'dart:convert';
+// ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
 import 'dart:ui';
-
-import 'package:drawing_app/currentMarking.dart';
 import 'package:drawing_app/photonic_mapper.dart';
 import 'package:drawing_app/simulate_net.dart';
 import 'package:flutter/foundation.dart';
@@ -12,10 +11,9 @@ import 'package:syncfusion_flutter_charts/charts.dart';
 import './sketcher.dart';
 import './drawn_line.dart';
 import 'package:flutter/rendering.dart';
-import 'dart:async';
 import 'package:matrix2d/matrix2d.dart';
 import './difference_matrix_builder.dart';
-import 'package:file_picker_web/file_picker_web.dart' as webPicker;
+import 'package:file_picker/file_picker.dart';
 import './histogram_plots.dart';
 
 class Building extends StatefulWidget {
@@ -31,19 +29,19 @@ class BuildingState extends State<Building> {
   List<DrawnArc> drawnArcs = <DrawnArc>[];
   List<DrawnLabel> drawnLabels = <DrawnLabel>[];
   List<Place> drawnOutputPlaces = [];
-  DrawnArc currentArc;
+  DrawnArc currentArc = DrawnArc(Offset.zero, Offset.zero, Colors.black, 1);
   Color selectedColor = Colors.black;
-  String selectedShape;
-  String selectedPhotonicShape;
+  String selectedShape = '';
+  late String selectedPhotonicShape;
   double x = 0.0;
   double y = 0.0;
-  List<dynamic> currentMarking;
-  List<List<double>> currentDiffMatrix;
+  List<dynamic> currentMarking = [];
+  List<List<double>> currentDiffMatrix = [];
   Matrix2d m2d = Matrix2d();
   List<DrawnJunction> drawnJunctions = <DrawnJunction>[];
-  DrawnJunction hoverJunction;
-  bool circuitPage;
-  bool showHover;
+  late DrawnJunction hoverJunction;
+  late bool circuitPage;
+  late bool showHover;
 
   @override
   initState() {
@@ -95,9 +93,11 @@ class BuildingState extends State<Building> {
                         junctions: drawnJunctions,
                         hoverJunction: (showHover)
                             ? DrawnJunction(
-                                Offset(x, y), selectedPhotonicShape, "hover")
+                                Offset(x, y), selectedPhotonicShape, "hover",
+                                junctionConnections: [])
                             : DrawnJunction(Offset(-200, -200),
-                                selectedPhotonicShape, "hover")))),
+                                selectedPhotonicShape, "hover",
+                                junctionConnections: [])))),
           ),
         ));
   }
@@ -154,7 +154,7 @@ class BuildingState extends State<Building> {
   }
 
   void onTapPhotonic(details) {
-    RenderBox box = context.findRenderObject();
+    RenderBox? box = context.findRenderObject() as RenderBox;
     Offset point = box.globalToLocal(details.globalPosition);
     double pointx = (point.dx / 25).roundToDouble() * 25.0;
     double pointy = (point.dy / 25).roundToDouble() * 25.0;
@@ -166,11 +166,9 @@ class BuildingState extends State<Building> {
           drawnJunctions, pointx, pointy, selectedPhotonicShape);
       setState(() {
         // add the photonic Junction to a list of drawnJunctions here and setState to redraw.
-        this.drawnJunctions.add(DrawnJunction(
-            Offset(pointx - 100, pointy),
-            selectedPhotonicShape,
-            drawnJunctions.length.toString(),
-            currentJunctionConnections));
+        this.drawnJunctions.add(DrawnJunction(Offset(pointx - 100, pointy),
+            selectedPhotonicShape, drawnJunctions.length.toString(),
+            junctionConnections: currentJunctionConnections));
       });
     }
   }
@@ -201,7 +199,10 @@ class BuildingState extends State<Building> {
         alignment: Alignment.topLeft,
         child: CustomPaint(
           painter: Sketcher(
-              places: drawnPlaces, points: drawnPoints, labels: drawnLabels),
+              places: drawnPlaces,
+              points: drawnPoints,
+              labels: drawnLabels,
+              arcs: []),
         ),
       ),
     );
@@ -309,11 +310,11 @@ class BuildingState extends State<Building> {
                   ..href = url
                   ..style.display = 'none'
                   ..download = fileName + ".txt";
-            html.document.body.children.add(anchor);
+            html.document.body!.children.add(anchor);
             // download
             anchor.click();
             // cleanup
-            html.document.body.children.remove(anchor);
+            html.document.body!.children.remove(anchor);
             html.Url.revokeObjectUrl(url);
           }
         },
@@ -422,11 +423,11 @@ class BuildingState extends State<Building> {
             ..href = url
             ..style.display = 'none'
             ..download = fileName + ".txt";
-          html.document.body.children.add(anchor);
+          html.document.body!.children.add(anchor);
           // download
           anchor.click();
           // cleanup
-          html.document.body.children.remove(anchor);
+          html.document.body!.children.remove(anchor);
           html.Url.revokeObjectUrl(url);
         },
       ),
@@ -444,19 +445,15 @@ class BuildingState extends State<Building> {
         ),
         onPressed: () async {
           if (kIsWeb) {
-            final html.File file = await webPicker.FilePicker.getFile(
-              allowedExtensions: ['txt'],
-            );
-
-            final reader = html.FileReader();
-            reader.readAsText(file);
-            await reader.onLoad.first;
-            Map<String, dynamic> data = jsonDecode(reader.result);
-            var transitions = jsonDecode(data["transitions"]);
-            var places = jsonDecode(data["places"]);
-            var outputPlaces = jsonDecode(data["outputPlaces"]);
-            var arcs = jsonDecode(data["arcs"]);
-            var labels = jsonDecode(data["labels"]);
+            FilePickerResult? result = await FilePicker.platform.pickFiles();
+            String? fileBytes =
+                new String.fromCharCodes(result!.files.first.bytes!.toList());
+            Map<String, dynamic> data = jsonDecode(fileBytes);
+            var transitions = jsonDecode(data["transitions"] ??= "[]");
+            var places = jsonDecode(data["places"] ??= "[]");
+            var outputPlaces = jsonDecode(data["outputPlaces"] ??= "[]");
+            var arcs = jsonDecode(data["arcs"] ??= "[]");
+            var labels = jsonDecode(data["labels"] ??= "[]");
             List<DrawnPoint> fileDrawnPoints = List.generate(transitions.length,
                 (index) => DrawnPoint.fromJson(transitions[index]));
             List<Place> fileOutputPlaces = List.generate(outputPlaces.length,
@@ -483,7 +480,7 @@ class BuildingState extends State<Building> {
   }
 
   void onPanStart(details) {
-    RenderBox box = context.findRenderObject();
+    RenderBox? box = context.findRenderObject() as RenderBox;
     Offset point = box.globalToLocal(details.globalPosition);
     point = (point ~/ 25) * 25;
     if (selectedShape == "Arc") {
@@ -525,20 +522,18 @@ class BuildingState extends State<Building> {
 
   void onPanUpdate(details) {
     if (selectedShape == "Arc") {
-      if (currentArc.point1 != null) {
-        RenderBox box = context.findRenderObject();
-        Offset point = box.globalToLocal(details.globalPosition);
-        point = (point ~/ 25) * 25;
-        setState(() {
-          currentArc = DrawnArc(currentArc.point1, point, selectedColor, 1);
-        });
-      }
+      RenderBox? box = context.findRenderObject() as RenderBox;
+      Offset point = box.globalToLocal(details.globalPosition);
+      point = (point ~/ 25) * 25;
+      setState(() {
+        currentArc = DrawnArc(currentArc.point1, point, selectedColor, 1);
+      });
     }
   }
 
   TextEditingController _textFieldController = TextEditingController();
-  String valueText;
-  num codeDialog;
+  late String valueText;
+  late num codeDialog;
   displayArcDialog(BuildContext context) async {
     return showDialog(
         context: context,
@@ -610,8 +605,8 @@ class BuildingState extends State<Building> {
   }
 
   TextEditingController _tokenFieldController = TextEditingController();
-  String tokenText;
-  num tokenDialog;
+  late String tokenText;
+  late num tokenDialog;
   displayTokenDialog(BuildContext context) async {
     return showDialog(
         context: context,
@@ -652,7 +647,7 @@ class BuildingState extends State<Building> {
   }
 
   void onTap(details) async {
-    RenderBox box = context.findRenderObject();
+    RenderBox box = context.findRenderObject() as RenderBox;
     Offset point = box.globalToLocal(details.globalPosition);
     point = (point ~/ 25) * 25;
     onPanStart(details);
@@ -685,7 +680,7 @@ class BuildingState extends State<Building> {
         }
       }
     }
-    return null;
+    return -1;
   }
 
   String conflictTesting(
@@ -754,12 +749,12 @@ class BuildingState extends State<Building> {
               ),
               TextButton(
                   onPressed: () async {
-                    RenderRepaintBoundary boundary =
-                        scr.currentContext.findRenderObject();
+                    RenderRepaintBoundary boundary = scr.currentContext!
+                        .findRenderObject() as RenderRepaintBoundary;
                     var image = await boundary.toImage();
                     var byteData =
                         await image.toByteData(format: ImageByteFormat.png);
-                    var pngBytes = byteData.buffer.asUint8List();
+                    var pngBytes = byteData!.buffer.asUint8List();
                     final blob = html.Blob([pngBytes]);
                     final url = html.Url.createObjectUrlFromBlob(blob);
                     final anchor =
@@ -767,11 +762,11 @@ class BuildingState extends State<Building> {
                           ..href = url
                           ..style.display = 'none'
                           ..download = "fileName" + ".png";
-                    html.document.body.children.add(anchor);
+                    html.document.body!.children.add(anchor);
                     // download
                     anchor.click();
                     // cleanup
-                    html.document.body.children.remove(anchor);
+                    html.document.body!.children.remove(anchor);
                     html.Url.revokeObjectUrl(url);
                   },
                   child: Text('Export Screenshot'))
@@ -781,7 +776,7 @@ class BuildingState extends State<Building> {
   }
 
   TextEditingController _saveFileController = TextEditingController();
-  String fileName;
+  late String fileName;
   saveDialog(BuildContext context) async {
     return showDialog(
         context: context,

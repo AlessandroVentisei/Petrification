@@ -10,7 +10,11 @@ class Sketcher extends CustomPainter {
   final List<DrawnArc> arcs;
   final List<DrawnLabel> labels;
 
-  Sketcher({this.points, this.places, this.arcs, this.labels});
+  Sketcher(
+      {required this.points,
+      required this.places,
+      required this.arcs,
+      required this.labels});
   @override
   void paint(Canvas canvas, Size size) {
     Paint paint = Paint()
@@ -133,7 +137,7 @@ class DrawAllJunctions extends CustomPainter {
   final List<DrawnJunction> junctions;
   final DrawnJunction hoverJunction;
 
-  DrawAllJunctions({this.junctions, this.hoverJunction});
+  DrawAllJunctions({required this.junctions, required this.hoverJunction});
 
   @override
   void paint(Canvas canvas, Size size) {
@@ -189,7 +193,7 @@ void draw2Port(double pointx, double pointy, Canvas canvas, Paint paint) {
 class ArcSketcher extends CustomPainter {
   final List<DrawnArc> arcs;
 
-  ArcSketcher({this.arcs});
+  ArcSketcher({required this.arcs});
 
   @override
   void paint(Canvas canvas, Size size) {

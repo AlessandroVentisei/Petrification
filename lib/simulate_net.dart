@@ -1,12 +1,10 @@
-import 'dart:html';
-import 'dart:io';
 import 'package:drawing_app/drawn_line.dart';
 import 'package:ml_linalg/matrix.dart';
 
 simulateNet(List<Place> drawnPlaces, List<DrawnPoint> drawnPoints,
     List<List<double>> diffMatrix) {
   final marking = List<double>.generate(
-      drawnPlaces.length, (index) => drawnPlaces[index].tokens);
+      drawnPlaces.length, (index) => drawnPlaces[index].tokens.toDouble());
   final objectMatrix = {
     "Place": drawnPlaces.length,
     "Transition": drawnPoints.length

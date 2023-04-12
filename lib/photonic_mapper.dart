@@ -1,7 +1,5 @@
 import 'dart:convert';
-import 'dart:io';
 import 'dart:ui';
-import 'dart:html' as html;
 import 'package:drawing_app/drawn_line.dart';
 import 'package:flutter/material.dart';
 
@@ -163,13 +161,13 @@ pnPlotter(List<List<DrawnJunction>> map) {
       // get just the output places in the current junction.
       outputPlaces = getOutputPlaces(currentJunction);
       pnFile["transitions"] = [
-        ...pnFile["transitions"],
+        ...pnFile["transitions"]!,
         ...currentJunction["transitions"]
       ];
-      pnFile["places"] = [...pnFile["places"], ...currentJunction["places"]];
-      pnFile["arcs"] = [...pnFile["arcs"], ...currentJunction["arcs"]];
-      pnFile["labels"].add(currentJunction["labels"]);
-      pnFile["outputPlaces"].addAll(outputPlaces);
+      pnFile["places"] = [...pnFile["places"]!, ...currentJunction["places"]];
+      pnFile["arcs"] = [...pnFile["arcs"]!, ...currentJunction["arcs"]];
+      pnFile["labels"]?.add(currentJunction["labels"]);
+      pnFile["outputPlaces"]?.addAll(outputPlaces);
     }
     // shift junctionConnections to previousStep's considerations.
     oldJunctions = newJunctions;
@@ -199,7 +197,7 @@ getOutputPlaces(Map<String, dynamic> currentJunction) {
 getJunction(x, y, String junctionShape, List<DrawnJunction> prevJunctions,
     String serialNum, int stepNum) {
   // return string for the new four-port junction to add into file.
-  Map<String, String> junctionTxt;
+  Map<String, String> junctionTxt = {};
   if (junctionShape == "4-Port") {
     junctionTxt = fourPortTxt;
   } else if (junctionShape == "3-Port") {
@@ -209,9 +207,9 @@ getJunction(x, y, String junctionShape, List<DrawnJunction> prevJunctions,
   } else {
     Error();
   }
-  var transitions = jsonDecode(junctionTxt["transitions"]);
-  var places = jsonDecode(junctionTxt["places"]);
-  var arcs = jsonDecode(junctionTxt["arcs"]);
+  var transitions = jsonDecode(junctionTxt["transitions"]!);
+  var places = jsonDecode(junctionTxt["places"]!);
+  var arcs = jsonDecode(junctionTxt["arcs"]!);
   List<Map<String, dynamic>> connections = [];
   List<int> index = [];
   // create a list of drawnJunctions connected to this junction

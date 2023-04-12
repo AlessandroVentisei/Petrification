@@ -2,9 +2,9 @@ import 'package:flutter/material.dart';
 
 //DrawnPoint for places and transitions, and DrawnArc for arcs only
 class DrawnPoint {
-  Offset point;
-  String shape;
-  Color color;
+  late Offset point;
+  late String shape;
+  late Color color;
   DrawnPoint(this.point, this.shape, this.color);
   Map<String, dynamic> toJson() {
     return {
@@ -18,14 +18,14 @@ class DrawnPoint {
     var dxdy = json['point'].split(",");
     point = Offset(double.parse(dxdy[0]), double.parse(dxdy[1]));
     shape = json['shape'];
-    color = Color(num.parse(json['color']));
+    color = Color(num.parse(json['color']).toInt());
   }
 }
 
 class Place {
-  Offset point;
-  num tokens;
-  Color color;
+  late Offset point;
+  late num tokens;
+  late Color color;
   Place(this.point, this.tokens, this.color);
   Map<String, dynamic> toJson() {
     return {
@@ -39,15 +39,15 @@ class Place {
     var dxdy = json['point'].split(",");
     point = Offset(double.parse(dxdy[0]), double.parse(dxdy[1]));
     tokens = num.parse(json['tokens']);
-    color = Color(num.parse(json['color']));
+    color = Color(num.parse(json['color']).toInt());
   }
 }
 
 class DrawnArc {
-  Offset point1;
-  Offset point2;
-  num weight;
-  Color color;
+  late Offset point1;
+  late Offset point2;
+  late num weight;
+  late Color color;
   DrawnArc(this.point1, this.point2, this.color, this.weight);
   Map<String, dynamic> toJson() {
     return {
@@ -64,23 +64,23 @@ class DrawnArc {
     point1 = Offset(double.parse(dxdy1[0]), double.parse(dxdy1[1]));
     point2 = Offset(double.parse(dxdy2[0]), double.parse(dxdy2[1]));
     weight = num.parse(json['weight']);
-    color = Color(num.parse(json['color']));
+    color = Color(num.parse(json['color']).toInt());
   }
 }
 
 class DrawnJunction {
-  Offset point; // offset of where it has been drawn.
-  String shape; // the selected shape.
-  String serial; // when was it drawn.
-  List<JunctionConnection>
+  late Offset point; // offset of where it has been drawn.
+  late String shape; // the selected shape.
+  late String serial; // when was it drawn.
+  late List<JunctionConnection>
       junctionConnections; // a list of the other drawnJunctions it has been connected to.
   DrawnJunction(this.point, this.shape, this.serial,
-      [this.junctionConnections]);
+      {required this.junctionConnections});
 }
 
 class DrawnLabel {
-  Offset offset;
-  String name;
+  late Offset offset;
+  late String name;
   DrawnLabel(this.offset, this.name);
   Map<String, dynamic> toJson() {
     return {

@@ -1,5 +1,4 @@
 import 'package:drawing_app/drawn_line.dart';
-import 'package:matrix2d/matrix2d.dart';
 
 //This is where the difference matrix is contructed after each arc is drawn.
 //Information on how this is done: https://www.techfak.uni-bielefeld.de/~mchen/BioPNML/Intro/MRPN.html
@@ -35,7 +34,7 @@ List<List<double>> differenceMatrixBuilder(
   List<List<double>> diffMatrix = List.generate(
       objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"],
-          (t) => (diffMatrixPlus[p][t] - diffMatrixMinus[p][t])));
+          (t) => (diffMatrixPlus[p][t] - diffMatrixMinus[p][t]).toDouble()));
   return diffMatrix;
 }
 
@@ -65,7 +64,7 @@ List<dynamic> differenceMatrixBuilderCurrentArc(
 List<dynamic> pointFinder(drawnPoints, drawnPlaces, currentArc) {
   int outputPointer = 0;
   int inputPointer = 0;
-  String outputShape;
+  String outputShape = '';
   // this loops through the points drawn and gives the placeNum
   // and transition num of the arc
   for (int i = 0; i < drawnPlaces.length; i++) {
