@@ -105,7 +105,7 @@ structPlotter(List<DrawnJunction> drawnJunctions) {
   ];
   List<DrawnJunction> newArray = [];
   List<DrawnJunction> oldArray = [initJunction];
-  int scatteringItterations = 15;
+  int scatteringItterations = 2;
 
   // 5 steps of scattering currently
   for (int s = 1; s < scatteringItterations; s++) {

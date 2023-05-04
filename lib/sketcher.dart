@@ -22,7 +22,6 @@ class Sketcher extends CustomPainter {
       ..strokeCap = StrokeCap.round
       ..strokeWidth = 5.0;
     for (int i = 0; i < labels.length; i++) {
-      if (labels[i] == null) continue;
       TextSpan span = new TextSpan(
           style: new TextStyle(color: Colors.black),
           text: labels[i].name.toString());

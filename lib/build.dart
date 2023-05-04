@@ -6,7 +6,6 @@ import 'package:drawing_app/photonic_mapper.dart';
 import 'package:drawing_app/simulate_net.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
-import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import './sketcher.dart';
 import './drawn_line.dart';
@@ -58,7 +57,7 @@ class BuildingState extends State<Building> {
         // high level photonic circuit building branch.
         Scaffold(
             backgroundColor: Colors.white,
-            body: Stack(children: [
+            body: Stack(clipBehavior: Clip.none, children: [
               buildHoverJunction(context, x, y),
               buildPhotonicShapeToolbar()
             ]),
@@ -159,7 +158,6 @@ class BuildingState extends State<Building> {
     double pointx = (point.dx / 25).roundToDouble() * 25.0;
     double pointy = (point.dy / 25).roundToDouble() * 25.0;
 
-    print(drawnJunctions);
     if (showHover) {
       // showHover is also acting as a validation indicator...
       List<JunctionConnection> currentJunctionConnections = junctionConnections(
@@ -353,7 +351,7 @@ class BuildingState extends State<Building> {
           int maxIterations = 20;
           List<Iterable<SfCartesianChart>> histograms =
               createPlotsFromOutputPlaces(
-                  context, drawnOutputPlaces, maxIterations);
+                  context, drawnOutputPlaces, maxIterations, drawnLabels);
           displayHistograms(context, histograms);
         },
       ),
@@ -591,7 +589,6 @@ class BuildingState extends State<Building> {
             });
             currentDiffMatrix = differenceMatrixBuilder(
                 selectedShape, drawnArcs, drawnPoints, drawnPlaces);
-            print(currentDiffMatrix);
           }
         } else {
           setState(() {
@@ -661,7 +658,6 @@ class BuildingState extends State<Building> {
         });
         // currentMarking =
         //     currentMarkingBuilder(drawnPoints, drawnPlaces, matrices);
-        print(drawnPlaces);
       }
     }
   }

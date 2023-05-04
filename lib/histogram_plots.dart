@@ -6,17 +6,23 @@ import 'drawn_line.dart';
 List<Iterable<SfCartesianChart>> createPlotsFromOutputPlaces(
     BuildContext context,
     List<Place> drawnOutputPlaces,
-    int scatteringItterations) {
+    int scatteringItterations,
+    List<DrawnLabel> labels) {
   // first row of the PN defined by initPoint
   Offset initPoint = drawnOutputPlaces.first.point;
   List<List<Place>> groupedByItteration = [];
+  List<List<DrawnLabel>> orderedLabels = [];
   List<List<List<List<Place>>>> groupedByJunctionAndPort = [
     [[]]
   ];
   for (int i = 0; i < scatteringItterations; i++) {
-    // junctions are placed in 300px blocks so we can group itterations using this
+    // junctions are placed in 300px blocks so we can group iterations using this
     groupedByItteration.add(drawnOutputPlaces
         .where((element) => element.point.dx == initPoint.dx + (i * 300))
+        .toList());
+    // add ordered junction labels for this scattering iteration
+    orderedLabels.add(labels
+        .where((element) => element.offset.dx == initPoint.dx + (i * 300) - 125)
         .toList());
     // now we should group by junction and port by checking how far appart the dy points are.
     // points are the same port if their dy are 25px apart.
@@ -24,7 +30,7 @@ List<Iterable<SfCartesianChart>> createPlotsFromOutputPlaces(
     // if the point is futher away but still in line then it is a seperate junction and should have a new histogram with a label.
     Place currentPlace;
     Place nextPlace;
-    // [ listOfItterations [ ListofJunctions [ [port1, port2], [port 1, port2], ... } ] ]
+    // [ listOfItterations [ ListofJunctions [ [port1, port2], [port 1, port2], ... ] ] ]
     int port = 1;
     int junction = 0;
     if (groupedByItteration[i].isEmpty) {
@@ -48,7 +54,6 @@ List<Iterable<SfCartesianChart>> createPlotsFromOutputPlaces(
     }
     groupedByJunctionAndPort.add([[]]);
   }
-  print(groupedByJunctionAndPort.toString());
   List<Iterable<SfCartesianChart>> histograms = [];
   for (int i = 0; i < groupedByJunctionAndPort.length; i++) {
     // mapping junctions from each itteration step into it's own plot.
@@ -57,6 +62,9 @@ List<Iterable<SfCartesianChart>> createPlotsFromOutputPlaces(
             primaryYAxis: NumericAxis(title: AxisTitle(text: "Token Count")),
             backgroundColor: Colors.white,
             tooltipBehavior: TooltipBehavior(enable: false),
+            title: ChartTitle(
+                text: orderedLabels[i][groupedByJunctionAndPort[i].indexOf(e)]
+                    .name),
             series: <ChartSeries<List<Place>, int>>[
               ColumnSeries<List<Place>, int>(
                   dataSource: e,
