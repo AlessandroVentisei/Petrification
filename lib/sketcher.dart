@@ -204,9 +204,9 @@ class ArcSketcher extends CustomPainter {
       ..strokeJoin = StrokeJoin.round
       ..strokeWidth = 2.0;
     for (int i = 0; i < arcs.length; ++i) {
-      if (arcs[i] == null) continue;
-      if (arcs[i].point1 == Offset(0, 0) || arcs[i].point2 == Offset(0, 0))
-        continue;
+      if (arcs[i].point1 == Offset(0, 0) ||
+          arcs[i].point2 == Offset(0, 0) ||
+          arcs[i].point1.dx.isNaN) continue;
       path = Path();
       var deltaX = arcs[i].point2.dx - arcs[i].point1.dx;
       var deltaY = arcs[i].point2.dy - arcs[i].point1.dy;
@@ -225,22 +225,20 @@ class ArcSketcher extends CustomPainter {
       path = ArrowPath.make(path: path, tipLength: 5);
       TextSpan span = new TextSpan(
           style: new TextStyle(color: Colors.black),
-          text: arcs[i].weight.toString());
+          text: (arcs[i].amplitudeWeight.toString() +
+              ", " +
+              arcs[i].phaseWeight.toString()));
       TextPainter tp = new TextPainter(
           text: span,
           textAlign: TextAlign.left,
           textDirection: TextDirection.ltr);
       tp.layout();
-      // if there is a weight of 1 then there should be no label
-      if (arcs[i].weight != 1) {
-        // special theta to find the tangent which the label should sit on.
-        var theta1 = (atan(deltaY / deltaX) + pi / 2);
-        var textLabelTranslation = Offset.fromDirection(theta1, 10);
-        var textLabelOffset = Offset.fromDirection(theta, distance / 2)
-            .translate(arcs[i].point1.dx + textLabelTranslation.dx,
-                arcs[i].point1.dy + textLabelTranslation.dy);
-        tp.paint(canvas, textLabelOffset);
-      }
+      var theta1 = (atan(deltaY / deltaX) + pi / 2);
+      var textLabelTranslation = Offset.fromDirection(theta1, 10);
+      var textLabelOffset = Offset.fromDirection(theta, distance / 2).translate(
+          arcs[i].point1.dx + textLabelTranslation.dx,
+          arcs[i].point1.dy + textLabelTranslation.dy);
+      tp.paint(canvas, textLabelOffset);
       canvas.drawPath(path, paint);
     }
   }

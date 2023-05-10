@@ -2,22 +2,33 @@ import 'package:drawing_app/drawn_line.dart';
 import 'package:ml_linalg/matrix.dart';
 
 simulateNet(List<Place> drawnPlaces, List<DrawnPoint> drawnPoints,
-    List<List<double>> diffMatrix) {
-  final marking = List<double>.generate(
-      drawnPlaces.length, (index) => drawnPlaces[index].tokens.toDouble());
+    List<List<List<double>>> diffMatrix) {
+  // get current amplitude numbers
+  final amplitudeMarking = List<double>.generate(
+      drawnPlaces.length, (index) => drawnPlaces[index].tokens[0].toDouble());
+  // get current phase numbers
+  final phaseMarking = List<double>.generate(
+      drawnPlaces.length, (index) => drawnPlaces[index].tokens[1].toDouble());
   final objectMatrix = {
     "Place": drawnPlaces.length,
     "Transition": drawnPoints.length
   };
+  // live transitions only calculated using amplitude Tokens.
   List<double> liveTransitions =
-      liveTranstisions(marking, diffMatrix, objectMatrix);
+      liveTranstisions(amplitudeMarking, diffMatrix[0], objectMatrix);
   // get newMatrix marking using new matrix operation function
-  var newMatrix = matrixMultiplication([liveTransitions], diffMatrix) +
-      Matrix.fromList([marking]);
+  var newAmplitudeMatrix =
+      (matrixMultiplication([liveTransitions], diffMatrix[0]) +
+              Matrix.fromList([amplitudeMarking]))
+          .asFlattenedList;
+  var newPhaseMatrix = (matrixMultiplication([liveTransitions], diffMatrix[1]) +
+          Matrix.fromList([phaseMarking]))
+      .asFlattenedList;
+  // this is where we can add the logic to return a newMatrix from enabled transitions with a second differenceMatrix for phase relationships...
   // get newMarking as flat list for rest of program
-  final newMarking = newMatrix.asFlattenedList;
   for (int i = 0; i < drawnPlaces.length; i++) {
-    drawnPlaces[i].tokens = newMarking[i];
+    drawnPlaces[i].tokens[0] = newAmplitudeMatrix[i];
+    drawnPlaces[i].tokens[1] = newPhaseMatrix[i];
   }
   return drawnPlaces;
 }

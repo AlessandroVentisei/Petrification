@@ -272,7 +272,7 @@ getJunction(x, y, String junctionShape, List<DrawnJunction> prevJunctions,
     element.point1 = Offset(element.point1.dx + x, element.point1.dy + y);
     element.point2 = Offset(element.point2.dx + x, element.point2.dy + y);
     if (element.point1.dx == DrawnPlaces.first.point.dx) {
-      element.weight = 1;
+      element.amplitudeWeight = 1;
     } /*else if (junctionShape == "3-Port") {
       element.weight = element.weight * 0.33;
     } else if (junctionShape == "4-Port") {
@@ -316,12 +316,14 @@ drawConnections(List<Map<String, dynamic>> connections, List<int> index, x, y,
           Offset(initPoint.dx - 25, initPoint.dy + pos),
           Offset(initPoint.dx, initPoint.dy + pos),
           Color.fromARGB(255, 0, 0, 0),
-          1));
+          1,
+          0));
       connectingArcs.add(DrawnArc(
           Offset(initPoint.dx - 25, initPoint.dy + pos + 25),
           Offset(initPoint.dx, initPoint.dy + pos + 25),
           Color.fromARGB(255, 0, 0, 0),
-          1));
+          1,
+          0));
     }
   }
   // now draw the arcs to connect these up
@@ -403,10 +405,10 @@ drawConnections(List<Map<String, dynamic>> connections, List<int> index, x, y,
     }
 
     // var arcWeights = stepNum;
-    connectingArcs
-        .add(DrawnArc(arc1point1, arc1point2, Color.fromARGB(255, 0, 0, 0), 1));
-    connectingArcs
-        .add(DrawnArc(arc2point1, arc2point2, Color.fromARGB(255, 0, 0, 0), 1));
+    connectingArcs.add(
+        DrawnArc(arc1point1, arc1point2, Color.fromARGB(255, 0, 0, 0), 1, 0));
+    connectingArcs.add(
+        DrawnArc(arc2point1, arc2point2, Color.fromARGB(255, 0, 0, 0), 1, 0));
   }
   return [transitions, connectingArcs];
 }

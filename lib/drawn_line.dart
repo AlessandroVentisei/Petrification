@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:flutter/material.dart';
 
 //DrawnPoint for places and transitions, and DrawnArc for arcs only
@@ -24,7 +26,7 @@ class DrawnPoint {
 
 class Place {
   late Offset point;
-  late num tokens;
+  late List tokens;
   late Color color;
   Place(this.point, this.tokens, this.color);
   Map<String, dynamic> toJson() {
@@ -38,7 +40,7 @@ class Place {
   Place.fromJson(json) {
     var dxdy = json['point'].split(",");
     point = Offset(double.parse(dxdy[0]), double.parse(dxdy[1]));
-    tokens = num.parse(json['tokens']);
+    tokens = jsonDecode(json['tokens']);
     color = Color(num.parse(json['color']).toInt());
   }
 }
@@ -46,14 +48,17 @@ class Place {
 class DrawnArc {
   late Offset point1;
   late Offset point2;
-  late num weight;
+  late num amplitudeWeight;
+  late num phaseWeight;
   late Color color;
-  DrawnArc(this.point1, this.point2, this.color, this.weight);
+  DrawnArc(this.point1, this.point2, this.color, this.amplitudeWeight,
+      this.phaseWeight);
   Map<String, dynamic> toJson() {
     return {
       'point1': point1.dx.toString() + "," + point1.dy.toString(),
       'point2': point2.dx.toString() + "," + point2.dy.toString(),
-      'weight': weight.toString(),
+      'amplitudeWeight': amplitudeWeight.toString(),
+      'phaseWeight': phaseWeight.toString(),
       'color': color.value.toString()
     };
   }
@@ -63,7 +68,8 @@ class DrawnArc {
     var dxdy2 = json['point2'].split(",");
     point1 = Offset(double.parse(dxdy1[0]), double.parse(dxdy1[1]));
     point2 = Offset(double.parse(dxdy2[0]), double.parse(dxdy2[1]));
-    weight = num.parse(json['weight']);
+    amplitudeWeight = num.parse(json['amplitudeWeight']);
+    phaseWeight = num.parse(json['phaseWeight']);
     color = Color(num.parse(json['color']).toInt());
   }
 }

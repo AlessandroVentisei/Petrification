@@ -6,6 +6,7 @@ import 'package:drawing_app/photonic_mapper.dart';
 import 'package:drawing_app/simulate_net.dart';
 import 'package:flutter/foundation.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:syncfusion_flutter_charts/charts.dart';
 import './sketcher.dart';
 import './drawn_line.dart';
@@ -28,19 +29,21 @@ class BuildingState extends State<Building> {
   List<DrawnArc> drawnArcs = <DrawnArc>[];
   List<DrawnLabel> drawnLabels = <DrawnLabel>[];
   List<Place> drawnOutputPlaces = [];
-  DrawnArc currentArc = DrawnArc(Offset.zero, Offset.zero, Colors.black, 1);
+  DrawnArc currentArc = DrawnArc(Offset.zero, Offset.zero, Colors.black, 1, 0);
   Color selectedColor = Colors.black;
   String selectedShape = '';
   late String selectedPhotonicShape;
   double x = 0.0;
   double y = 0.0;
-  List<dynamic> currentMarking = [];
-  List<List<double>> currentDiffMatrix = [];
-  Matrix2d m2d = Matrix2d();
+  List<List<List<double>>> currentDiffMatrix = [];
   List<DrawnJunction> drawnJunctions = <DrawnJunction>[];
   late DrawnJunction hoverJunction;
   late bool circuitPage;
   late bool showHover;
+  final currentArcAmplitude = TextEditingController();
+  final currentArcPhase = TextEditingController();
+  num arcWeight = 0;
+  num arcPhase = 0;
 
   @override
   initState() {
@@ -48,6 +51,27 @@ class BuildingState extends State<Building> {
     circuitPage = false;
     showHover = true;
     selectedPhotonicShape = "4-Port";
+    currentArcAmplitude.text = "0";
+    currentArcPhase.text = "0";
+  }
+
+  setAmplitudePhase(value, String field) {
+    try {
+      num.parse(value);
+      if (field == "a") {
+        setState(() {
+          arcWeight = num.parse(value);
+          currentArcAmplitude.text = value;
+        });
+      } else if (field == "p") {
+        arcPhase = num.parse(value);
+        currentArcPhase.text = value;
+      } else {
+        throw 'No TextController related to arc field';
+      }
+    } catch (e) {
+      // deal with the number not being a number here...
+    }
   }
 
   @override
@@ -226,7 +250,30 @@ class BuildingState extends State<Building> {
           buildSimulateButton("Simulate"),
           buildSaveButton("Save"),
           buildUploadButton("Upload"),
-          buildGraphButton("ShowGraph")
+          buildGraphButton("ShowGraph"),
+          Divider(
+            height: 10.0,
+          ),
+          Row(children: [
+            TextField(
+              onChanged: (value) => setAmplitudePhase(value, "a"),
+              controller: currentArcAmplitude,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: 'A',
+                constraints: BoxConstraints(maxWidth: 50),
+              ),
+            ),
+            TextField(
+              onChanged: (value) => setAmplitudePhase(value, "p"),
+              controller: currentArcPhase,
+              decoration: InputDecoration(
+                border: OutlineInputBorder(),
+                labelText: "P",
+                constraints: BoxConstraints(maxWidth: 50),
+              ),
+            )
+          ])
         ],
       ),
     );
@@ -483,11 +530,13 @@ class BuildingState extends State<Building> {
     point = (point ~/ 25) * 25;
     if (selectedShape == "Arc") {
       if (conflictTesting(point, drawnPoints, drawnPlaces) != "freeSpace") {
+        print(arcWeight);
         setState(() {
-          currentArc = DrawnArc(point, point + Offset(5, 5), selectedColor, 1);
+          currentArc = DrawnArc(
+              point, point + Offset(5, 5), selectedColor, arcWeight, arcPhase);
         });
       } else {
-        currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor, 1);
+        currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor, 1, 0);
         return;
       }
     }
@@ -495,7 +544,7 @@ class BuildingState extends State<Building> {
       if (conflictTesting(point, drawnPoints, drawnPlaces) == "freeSpace") {
         setState(() {
           drawnPlaces = List.from(drawnPlaces)
-            ..add(Place(point, 0, selectedColor));
+            ..add(Place(point, [0, 0], selectedColor));
         });
       }
     }
@@ -513,7 +562,7 @@ class BuildingState extends State<Building> {
         drawnPoints.removeWhere((element) => element.point == point);
         drawnArcs.removeWhere(
             (element) => (element.point1 == point || element.point2 == point));
-        currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), Colors.white, 0);
+        currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), Colors.white, 0, 0);
       });
     }
   }
@@ -524,51 +573,10 @@ class BuildingState extends State<Building> {
       Offset point = box.globalToLocal(details.globalPosition);
       point = (point ~/ 25) * 25;
       setState(() {
-        currentArc = DrawnArc(currentArc.point1, point, selectedColor, 1);
+        currentArc = DrawnArc(
+            currentArc.point1, point, selectedColor, arcWeight, arcPhase);
       });
     }
-  }
-
-  TextEditingController _textFieldController = TextEditingController();
-  late String valueText;
-  late num codeDialog;
-  displayArcDialog(BuildContext context) async {
-    return showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Arc Weight'),
-            content: TextField(
-              onChanged: (value) {
-                setState(() {
-                  valueText = value;
-                });
-              },
-              controller: _textFieldController,
-              decoration: InputDecoration(hintText: "Input arc weight"),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('CANCEL'),
-                onPressed: () {
-                  setState(() {
-                    codeDialog = 0;
-                    Navigator.pop(context);
-                  });
-                },
-              ),
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  setState(() {
-                    codeDialog = num.parse(valueText);
-                    Navigator.pop(context);
-                  });
-                },
-              ),
-            ],
-          );
-        });
   }
 
   void onPanEnd(details) async {
@@ -577,13 +585,13 @@ class BuildingState extends State<Building> {
         final conflictTest =
             conflictTesting(currentArc.point2, drawnPoints, drawnPlaces);
         if (conflictTest != "freeSpace") {
-          await displayArcDialog(context);
+          // await displayArcDialog(context);
           // codeDialog = 1;
-          if (codeDialog == 0) {
+          if (arcWeight == 0) {
             return;
           } else {
             currentArc = DrawnArc(currentArc.point1, currentArc.point2,
-                selectedColor, codeDialog);
+                selectedColor, arcWeight, arcPhase);
             setState(() {
               drawnArcs = List.from(drawnArcs)..add(currentArc);
             });
@@ -592,7 +600,8 @@ class BuildingState extends State<Building> {
           }
         } else {
           setState(() {
-            currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor, 1);
+            currentArc =
+                DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor, 1, 0);
           });
         }
       } catch (error) {
@@ -654,10 +663,8 @@ class BuildingState extends State<Building> {
         var selectedPlace =
             drawnPlaces.where((element) => element.point == point);
         setState(() {
-          selectedPlace.first.tokens += tokenDialog;
+          selectedPlace.first.tokens[0] += tokenDialog;
         });
-        // currentMarking =
-        //     currentMarkingBuilder(drawnPoints, drawnPlaces, matrices);
       }
     }
   }

@@ -8,34 +8,42 @@ import 'package:drawing_app/drawn_line.dart';
 // labels are too difficult to make out and they should be able to be disabled.
 // make the token question part of the UI instead of a popup box
 
-List<List<double>> differenceMatrixBuilder(
+List<List<List<double>>> differenceMatrixBuilder(
     selectedShape, drawnArcs, drawnPoints, drawnPlaces) {
   // integrate drawnPlaces with the differenceMatrixBuilder.
   final objectMatrix = {
     "Place": drawnPlaces.length,
     "Transition": drawnPoints.length
   };
-  // m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
   List<List<num>> diffMatrixPlus = List.generate(objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
-  // m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
   List<List<num>> diffMatrixMinus = List.generate(objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
 
-  final stopwatch = Stopwatch();
-  stopwatch.start();
+  List<List<num>> phaseDiffMatrixPlus = List.generate(objectMatrix["Place"],
+      (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
+
   for (int i = 0; i < drawnArcs.length; i++) {
-    differenceMatrixBuilderCurrentArc(objectMatrix, selectedShape, drawnPoints,
-        drawnPlaces, drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
+    differenceMatrixBuilderCurrentArc(
+        objectMatrix,
+        selectedShape,
+        drawnPoints,
+        drawnPlaces,
+        drawnArcs[i],
+        diffMatrixPlus,
+        diffMatrixMinus,
+        phaseDiffMatrixPlus);
   }
-  stopwatch.stop();
-  print("time to build difference matrix: " +
-      stopwatch.elapsedMilliseconds.toString());
   List<List<double>> diffMatrix = List.generate(
       objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"],
           (t) => (diffMatrixPlus[p][t] - diffMatrixMinus[p][t]).toDouble()));
-  return diffMatrix;
+
+  List<List<double>> phaseDiffMatrix = List.generate(
+      objectMatrix["Place"],
+      (p) => List.generate(objectMatrix["Transition"],
+          (t) => (phaseDiffMatrixPlus[p][t]).toDouble()));
+  return [diffMatrix, phaseDiffMatrix];
 }
 
 List<dynamic> differenceMatrixBuilderCurrentArc(
@@ -45,20 +53,22 @@ List<dynamic> differenceMatrixBuilderCurrentArc(
     List<Place> drawnPlaces,
     DrawnArc currentArc,
     List<List<num>> diffMatrixPlus,
-    List<List<num>> diffMatrixMinus) {
+    List<List<num>> diffMatrixMinus,
+    List<List<num>> phaseDiffMatrixPlus) {
   List<dynamic> loc;
   //This function will first compare the current arc to drawn places to find points connected.
   //currentArc.point1 must = a drawnPoints.point
   loc = pointFinder(drawnPoints, drawnPlaces, currentArc);
   if (loc[2] == "Place") {
     diffMatrixMinus[loc[0]][loc[1]] =
-        diffMatrixMinus[loc[0]][loc[1]] + currentArc.weight;
+        diffMatrixMinus[loc[0]][loc[1]] + currentArc.amplitudeWeight;
   }
   if (loc[2] == "Transition") {
     diffMatrixPlus[loc[1]][loc[0]] =
-        diffMatrixPlus[loc[1]][loc[0]] + currentArc.weight;
+        diffMatrixPlus[loc[1]][loc[0]] + currentArc.amplitudeWeight;
+    phaseDiffMatrixPlus[loc[1]][loc[0]] = currentArc.phaseWeight;
   }
-  return [diffMatrixMinus, diffMatrixPlus];
+  return [diffMatrixMinus, diffMatrixPlus, phaseDiffMatrixPlus];
 }
 
 List<dynamic> pointFinder(drawnPoints, drawnPlaces, currentArc) {

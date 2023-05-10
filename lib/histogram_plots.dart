@@ -70,7 +70,7 @@ List<Iterable<SfCartesianChart>> createPlotsFromOutputPlaces(
                   dataSource: e,
                   xValueMapper: (List<Place> port, _) => e.indexOf(port) + 1,
                   yValueMapper: (List<Place> port, _) =>
-                      port.first.tokens - port.last.tokens,
+                      port.first.tokens[0] - port.last.tokens,
                   name: 'Gold',
                   color: Color.fromRGBO(8, 142, 255, 1))
             ])));
