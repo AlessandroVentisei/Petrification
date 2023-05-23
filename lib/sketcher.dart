@@ -223,10 +223,11 @@ class ArcSketcher extends CustomPainter {
       // move to that point.
       path.lineTo(lineTo.dx, lineTo.dy);
       path = ArrowPath.make(path: path, tipLength: 5);
+
       TextSpan span = new TextSpan(
           style: new TextStyle(color: Colors.black),
           text: (arcs[i].amplitudeWeight.toString() +
-              ", " +
+              ", x+" +
               arcs[i].phaseWeight.toString()));
       TextPainter tp = new TextPainter(
           text: span,
