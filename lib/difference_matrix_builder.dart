@@ -4,10 +4,6 @@ import 'package:drawing_app/drawn_line.dart';
 //Information on how this is done: https://www.techfak.uni-bielefeld.de/~mchen/BioPNML/Intro/MRPN.html
 //Essential to advancement of PN is the difference matrix, once confirmed it may be used for each advancement.
 
-//TODO:
-// labels are too difficult to make out and they should be able to be disabled.
-// make the token question part of the UI instead of a popup box
-
 List<List<List<double>>> differenceMatrixBuilder(
     selectedShape, drawnArcs, drawnPoints, drawnPlaces) {
   // integrate drawnPlaces with the differenceMatrixBuilder.
@@ -22,6 +18,8 @@ List<List<List<double>>> differenceMatrixBuilder(
 
   List<List<num>> phaseDiffMatrixPlus = List.generate(objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
+  List<List<num>> phaseDiffMatrixMinus = List.generate(objectMatrix["Place"],
+      (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
 
   for (int i = 0; i < drawnArcs.length; i++) {
     differenceMatrixBuilderCurrentArc(
@@ -32,7 +30,8 @@ List<List<List<double>>> differenceMatrixBuilder(
         drawnArcs[i],
         diffMatrixPlus,
         diffMatrixMinus,
-        phaseDiffMatrixPlus);
+        phaseDiffMatrixPlus,
+        phaseDiffMatrixMinus);
   }
   List<List<double>> diffMatrix = List.generate(
       objectMatrix["Place"],
@@ -54,7 +53,8 @@ List<dynamic> differenceMatrixBuilderCurrentArc(
     DrawnArc currentArc,
     List<List<num>> diffMatrixPlus,
     List<List<num>> diffMatrixMinus,
-    List<List<num>> phaseDiffMatrixPlus) {
+    List<List<num>> phaseDiffMatrixPlus,
+    List<List<num>> phaseDiffMatrixMinus) {
   List<dynamic> loc;
   //This function will first compare the current arc to drawn places to find points connected.
   //currentArc.point1 must = a drawnPoints.point
@@ -66,9 +66,14 @@ List<dynamic> differenceMatrixBuilderCurrentArc(
   if (loc[2] == "Transition") {
     diffMatrixPlus[loc[1]][loc[0]] =
         diffMatrixPlus[loc[1]][loc[0]] + currentArc.amplitudeWeight;
-    phaseDiffMatrixPlus[loc[1]][loc[0]] = currentArc.phaseWeight;
+    phaseDiffMatrixPlus[loc[1]][loc[0]] += currentArc.phaseWeight;
   }
-  return [diffMatrixMinus, diffMatrixPlus, phaseDiffMatrixPlus];
+  return [
+    diffMatrixMinus,
+    diffMatrixPlus,
+    phaseDiffMatrixPlus,
+    phaseDiffMatrixMinus
+  ];
 }
 
 List<dynamic> pointFinder(drawnPoints, drawnPlaces, currentArc) {
