@@ -9,7 +9,7 @@ import 'package:drawing_app/drawn_line.dart';
 // make the token question part of the UI instead of a popup box
 
 List<List<double>> differenceMatrixBuilder(
-    selectedShape, drawnArcs, drawnPoints, drawnPlaces) {
+    drawnArcs, drawnPoints, drawnPlaces) {
   // integrate drawnPlaces with the differenceMatrixBuilder.
   final objectMatrix = {
     "Place": drawnPlaces.length,
@@ -25,8 +25,8 @@ List<List<double>> differenceMatrixBuilder(
   final stopwatch = Stopwatch();
   stopwatch.start();
   for (int i = 0; i < drawnArcs.length; i++) {
-    differenceMatrixBuilderCurrentArc(objectMatrix, selectedShape, drawnPoints,
-        drawnPlaces, drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
+    differenceMatrixBuilderCurrentArc(objectMatrix, drawnPoints, drawnPlaces,
+        drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
   }
   stopwatch.stop();
   print("time to build difference matrix: " +
@@ -40,7 +40,6 @@ List<List<double>> differenceMatrixBuilder(
 
 List<dynamic> differenceMatrixBuilderCurrentArc(
     matrices,
-    selectedShape,
     drawnPoints,
     List<Place> drawnPlaces,
     DrawnArc currentArc,

@@ -371,8 +371,7 @@ class BuildingState extends State<Building> {
           const maxIterations = 20;
           for (int i = 0; i < maxIterations; i++) {
             // add in check for dead net.
-            drawnPlaces =
-                simulateNet(drawnPlaces, drawnPoints, currentDiffMatrix);
+            drawnPlaces = simulateNet(drawnPlaces, drawnPoints, drawnArcs);
           }
           // horrible bit of code to update drawnOutputPlaces with the drawnPlaces token values.
           drawnOutputPlaces = drawnPlaces
@@ -468,8 +467,8 @@ class BuildingState extends State<Building> {
               drawnPlaces = fileDrawnPlace;
               drawnArcs = fileDrawnArc;
               drawnLabels = fileDrawnLabels;
-              currentDiffMatrix = differenceMatrixBuilder(
-                  selectedShape, drawnArcs, drawnPoints, drawnPlaces);
+              /*currentDiffMatrix = differenceMatrixBuilder(
+                  selectedShape, drawnArcs, drawnPoints, drawnPlaces);*/
             });
           }
         },
@@ -587,8 +586,7 @@ class BuildingState extends State<Building> {
             setState(() {
               drawnArcs = List.from(drawnArcs)..add(currentArc);
             });
-            currentDiffMatrix = differenceMatrixBuilder(
-                selectedShape, drawnArcs, drawnPoints, drawnPlaces);
+            // currentDiffMatrix = differenceMatrixBuilder(drawnArcs, drawnPoints, drawnPlaces);
           }
         } else {
           setState(() {

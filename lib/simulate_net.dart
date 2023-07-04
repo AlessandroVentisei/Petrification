@@ -1,18 +1,22 @@
 import 'package:drawing_app/drawn_line.dart';
 import 'package:ml_linalg/matrix.dart';
 
+import 'difference_matrix_builder.dart';
+
 simulateNet(List<Place> drawnPlaces, List<DrawnPoint> drawnPoints,
-    List<List<double>> diffMatrix) {
+    List<DrawnArc> drawnArcs) {
   final marking = List<double>.generate(
       drawnPlaces.length, (index) => drawnPlaces[index].tokens.toDouble());
   final objectMatrix = {
     "Place": drawnPlaces.length,
     "Transition": drawnPoints.length
   };
+  final currentDiffMatrix =
+      differenceMatrixBuilder(drawnArcs, drawnPoints, drawnPlaces);
   List<double> liveTransitions =
-      liveTranstisions(marking, diffMatrix, objectMatrix);
+      liveTranstisions(marking, currentDiffMatrix, objectMatrix);
   // get newMatrix marking using new matrix operation function
-  var newMatrix = matrixMultiplication([liveTransitions], diffMatrix) +
+  var newMatrix = matrixMultiplication([liveTransitions], currentDiffMatrix) +
       Matrix.fromList([marking]);
   // get newMarking as flat list for rest of program
   final newMarking = newMatrix.asFlattenedList;
