@@ -241,6 +241,22 @@ class ArcSketcher extends CustomPainter {
                 arcs[i].point1.dy + textLabelTranslation.dy);
         tp.paint(canvas, textLabelOffset);
       }
+      TextSpan xSpan =
+          new TextSpan(style: new TextStyle(color: Colors.black), text: "x");
+      TextPainter xpainter = new TextPainter(
+          text: xSpan,
+          textAlign: TextAlign.left,
+          textDirection: TextDirection.ltr);
+      xpainter.layout();
+      if (arcs[i].isDynamic) {
+        // special theta to find the tangent which the label should sit on.
+        var theta1 = (atan(deltaY / deltaX) + pi / 2);
+        var textLabelTranslation = Offset.fromDirection(theta1, 10);
+        var textLabelOffset = Offset.fromDirection(theta, distance / 2)
+            .translate(arcs[i].point1.dx + textLabelTranslation.dx,
+                arcs[i].point1.dy + textLabelTranslation.dy);
+        xpainter.paint(canvas, textLabelOffset);
+      }
       canvas.drawPath(path, paint);
     }
   }
