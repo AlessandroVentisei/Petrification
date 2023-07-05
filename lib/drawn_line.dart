@@ -48,13 +48,16 @@ class DrawnArc {
   late Offset point2;
   late num weight;
   late Color color;
-  DrawnArc(this.point1, this.point2, this.color, this.weight);
+  late bool isDynamic;
+  DrawnArc(this.point1, this.point2, this.color, this.weight,
+      {this.isDynamic = false});
   Map<String, dynamic> toJson() {
     return {
       'point1': point1.dx.toString() + "," + point1.dy.toString(),
       'point2': point2.dx.toString() + "," + point2.dy.toString(),
       'weight': weight.toString(),
-      'color': color.value.toString()
+      'color': color.value.toString(),
+      'isDynamic': isDynamic.toString()
     };
   }
 

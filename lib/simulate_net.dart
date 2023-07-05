@@ -12,7 +12,7 @@ simulateNet(List<Place> drawnPlaces, List<DrawnPoint> drawnPoints,
     "Transition": drawnPoints.length
   };
   final currentDiffMatrix =
-      differenceMatrixBuilder(drawnArcs, drawnPoints, drawnPlaces);
+      differenceMatrixBuilder(drawnArcs, drawnPoints, drawnPlaces, marking);
   List<double> liveTransitions =
       liveTranstisions(marking, currentDiffMatrix, objectMatrix);
   // get newMatrix marking using new matrix operation function

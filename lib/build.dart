@@ -221,6 +221,7 @@ class BuildingState extends State<Building> {
           buildShapeButton("Place"),
           buildShapeButton("Transition"),
           buildShapeButton("Arc"),
+          buildShapeButton("DynamicArc"),
           buildShapeButton("Token"),
           buildShapeButton("Delete"),
           buildSimulateButton("Simulate"),
@@ -368,7 +369,7 @@ class BuildingState extends State<Building> {
           child: Text(string, style: TextStyle(fontSize: 8)),
         ),
         onPressed: () {
-          const maxIterations = 20;
+          const maxIterations = 1;
           for (int i = 0; i < maxIterations; i++) {
             // add in check for dead net.
             drawnPlaces = simulateNet(drawnPlaces, drawnPoints, drawnArcs);
@@ -480,7 +481,7 @@ class BuildingState extends State<Building> {
     RenderBox? box = context.findRenderObject() as RenderBox;
     Offset point = box.globalToLocal(details.globalPosition);
     point = (point ~/ 25) * 25;
-    if (selectedShape == "Arc") {
+    if (selectedShape.contains("Arc")) {
       if (conflictTesting(point, drawnPoints, drawnPlaces) != "freeSpace") {
         setState(() {
           currentArc = DrawnArc(point, point + Offset(5, 5), selectedColor, 1);
@@ -518,7 +519,7 @@ class BuildingState extends State<Building> {
   }
 
   void onPanUpdate(details) {
-    if (selectedShape == "Arc") {
+    if (selectedShape.contains("Arc")) {
       RenderBox? box = context.findRenderObject() as RenderBox;
       Offset point = box.globalToLocal(details.globalPosition);
       point = (point ~/ 25) * 25;
@@ -571,24 +572,30 @@ class BuildingState extends State<Building> {
   }
 
   void onPanEnd(details) async {
-    if (selectedShape == "Arc") {
+    if (selectedShape.contains("Arc")) {
       try {
         final conflictTest =
             conflictTesting(currentArc.point2, drawnPoints, drawnPlaces);
         if (conflictTest != "freeSpace") {
-          await displayArcDialog(context);
-          // codeDialog = 1;
-          if (codeDialog == 0) {
-            return;
+          if (selectedShape == "Arc") {
+            await displayArcDialog(context);
+            // codeDialog = 1;
+            if (codeDialog == 0) {
+              return;
+            } else {
+              currentArc = DrawnArc(currentArc.point1, currentArc.point2,
+                  selectedColor, codeDialog);
+            }
           } else {
-            currentArc = DrawnArc(currentArc.point1, currentArc.point2,
-                selectedColor, codeDialog);
-            setState(() {
-              drawnArcs = List.from(drawnArcs)..add(currentArc);
-            });
-            // currentDiffMatrix = differenceMatrixBuilder(drawnArcs, drawnPoints, drawnPlaces);
+            currentArc = DrawnArc(
+                currentArc.point1, currentArc.point2, selectedColor, 1,
+                isDynamic: true);
           }
+          setState(() {
+            drawnArcs = List.from(drawnArcs)..add(currentArc);
+          });
         } else {
+          // fails conflict testing
           setState(() {
             currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor, 1);
           });

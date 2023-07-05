@@ -9,13 +9,12 @@ import 'package:drawing_app/drawn_line.dart';
 // make the token question part of the UI instead of a popup box
 
 List<List<double>> differenceMatrixBuilder(
-    drawnArcs, drawnPoints, drawnPlaces) {
+    drawnArcs, drawnPoints, drawnPlaces, marking) {
   // integrate drawnPlaces with the differenceMatrixBuilder.
   final objectMatrix = {
     "Place": drawnPlaces.length,
     "Transition": drawnPoints.length
   };
-  // m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
   List<List<num>> diffMatrixPlus = List.generate(objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
   // m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
@@ -26,7 +25,7 @@ List<List<double>> differenceMatrixBuilder(
   stopwatch.start();
   for (int i = 0; i < drawnArcs.length; i++) {
     differenceMatrixBuilderCurrentArc(objectMatrix, drawnPoints, drawnPlaces,
-        drawnArcs[i], diffMatrixPlus, diffMatrixMinus);
+        drawnArcs[i], diffMatrixPlus, diffMatrixMinus, marking);
   }
   stopwatch.stop();
   print("time to build difference matrix: " +
@@ -44,18 +43,31 @@ List<dynamic> differenceMatrixBuilderCurrentArc(
     List<Place> drawnPlaces,
     DrawnArc currentArc,
     List<List<num>> diffMatrixPlus,
-    List<List<num>> diffMatrixMinus) {
+    List<List<num>> diffMatrixMinus,
+    List<double> marking) {
   List<dynamic> loc;
   //This function will first compare the current arc to drawn places to find points connected.
   //currentArc.point1 must = a drawnPoints.point
   loc = pointFinder(drawnPoints, drawnPlaces, currentArc);
   if (loc[2] == "Place") {
-    diffMatrixMinus[loc[0]][loc[1]] =
-        diffMatrixMinus[loc[0]][loc[1]] + currentArc.weight;
+    if (!currentArc.isDynamic) {
+      diffMatrixMinus[loc[0]][loc[1]] =
+          diffMatrixMinus[loc[0]][loc[1]] + currentArc.weight;
+    } else {
+      if (marking[loc[0]] == 0) {
+        diffMatrixMinus[loc[0]][loc[1]] = 1;
+      } else {
+        diffMatrixMinus[loc[0]][loc[1]] = marking[loc[0]];
+      }
+    }
   }
   if (loc[2] == "Transition") {
-    diffMatrixPlus[loc[1]][loc[0]] =
-        diffMatrixPlus[loc[1]][loc[0]] + currentArc.weight;
+    if (!currentArc.isDynamic) {
+      diffMatrixPlus[loc[1]][loc[0]] =
+          diffMatrixPlus[loc[1]][loc[0]] + currentArc.weight;
+    } else {
+      diffMatrixPlus[loc[1]][loc[0]] = 1;
+    }
   }
   return [diffMatrixMinus, diffMatrixPlus];
 }
