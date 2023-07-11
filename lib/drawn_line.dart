@@ -5,12 +5,14 @@ class DrawnPoint {
   late Offset point;
   late String shape;
   late Color color;
-  DrawnPoint(this.point, this.shape, this.color);
+  late num time;
+  DrawnPoint(this.point, this.shape, this.color, {this.time = 0});
   Map<String, dynamic> toJson() {
     return {
       'point': point.dx.toString() + "," + point.dy.toString(),
       'shape': shape,
-      'color': color.value.toString()
+      'color': color.value.toString(),
+      'time': time.toString()
     };
   }
 
@@ -19,6 +21,7 @@ class DrawnPoint {
     point = Offset(double.parse(dxdy[0]), double.parse(dxdy[1]));
     shape = json['shape'];
     color = Color(num.parse(json['color']).toInt());
+    time = num.parse(json["time"]);
   }
 }
 
