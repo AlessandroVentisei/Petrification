@@ -9,27 +9,36 @@ import 'package:drawing_app/drawn_line.dart';
 // make the token question part of the UI instead of a popup box
 
 List<List<double>> differenceMatrixBuilder(
-    drawnArcs, drawnPoints, drawnPlaces, marking) {
+    drawnArcs, drawnPoints, drawnPlaces, marking, timeConstraintMask) {
   // integrate drawnPlaces with the differenceMatrixBuilder.
   final objectMatrix = {
     "Place": drawnPlaces.length,
     "Transition": drawnPoints.length
   };
-  List<List<num>> diffMatrixPlus = List.generate(objectMatrix["Place"],
-      (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
-  // m2d.zeros(objectMatrix["Place"], objectMatrix["Transition"]);
-  List<List<num>> diffMatrixMinus = List.generate(objectMatrix["Place"],
-      (p) => List.generate(objectMatrix["Transition"], (t) => 0.0));
+  List<List<num>> diffMatrixPlus = List.generate(
+      objectMatrix["Place"],
+      (p) => List.generate(objectMatrix["Transition"], (t) {
+            if (timeConstraintMask[t] == false) {
+              return -1000;
+            } else {
+              return 0.0;
+            }
+          }));
+  List<List<num>> diffMatrixMinus = List.generate(
+      objectMatrix["Place"],
+      (p) => List.generate(objectMatrix["Transition"], (t) {
+            if (timeConstraintMask[t] == false) {
+              return 1000;
+            } else {
+              return 0.0;
+            }
+          }));
 
-  final stopwatch = Stopwatch();
-  stopwatch.start();
   for (int i = 0; i < drawnArcs.length; i++) {
     differenceMatrixBuilderCurrentArc(objectMatrix, drawnPoints, drawnPlaces,
         drawnArcs[i], diffMatrixPlus, diffMatrixMinus, marking);
   }
-  stopwatch.stop();
-  print("time to build difference matrix: " +
-      stopwatch.elapsedMilliseconds.toString());
+
   List<List<double>> diffMatrix = List.generate(
       objectMatrix["Place"],
       (p) => List.generate(objectMatrix["Transition"],

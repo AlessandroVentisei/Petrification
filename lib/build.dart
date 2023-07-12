@@ -222,6 +222,8 @@ class BuildingState extends State<Building> {
           buildShapeButton("Transition"),
           buildShapeButton("Arc"),
           buildShapeButton("DynamicArc"),
+          buildShapeButton("1sec Transition"),
+          buildShapeButton("2sec Transition"),
           buildShapeButton("Token"),
           buildShapeButton("Delete"),
           buildSimulateButton("Simulate"),
@@ -499,11 +501,18 @@ class BuildingState extends State<Building> {
         });
       }
     }
-    if (selectedShape == "Transition") {
+    if (selectedShape.contains("Transition")) {
       if (conflictTesting(point, drawnPoints, drawnPlaces) == "freeSpace") {
+        var timeConstraint = 0;
+        if (selectedShape.contains("1sec")) {
+          timeConstraint = 1;
+        } else if (selectedShape.contains("2sec")) {
+          timeConstraint = 2;
+        }
         setState(() {
           drawnPoints = List.from(drawnPoints)
-            ..add(DrawnPoint(point, selectedShape, selectedColor));
+            ..add(DrawnPoint(point, selectedShape, selectedColor,
+                time: timeConstraint));
         });
       }
     }

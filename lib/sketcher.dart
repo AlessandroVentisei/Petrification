@@ -37,7 +37,7 @@ class Sketcher extends CustomPainter {
       if (points[i] == null) continue;
       paint.color = points[i].color;
       paint.strokeWidth = 10;
-      if (points[i].shape == "Transition") {
+      if (points[i].shape.contains("Transition")) {
         canvas.drawRect(points[i].point - Offset(10, 10) & Size(20, 20), paint);
         canvas.drawRect(
             points[i].point - Offset(10, 10) + Offset(2.5, 2.5) & Size(15, 15),
