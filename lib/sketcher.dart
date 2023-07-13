@@ -42,6 +42,17 @@ class Sketcher extends CustomPainter {
         canvas.drawRect(
             points[i].point - Offset(10, 10) + Offset(2.5, 2.5) & Size(15, 15),
             paint..color = Colors.white);
+        if (points[i].shape != "Transition") {
+          TextSpan span = new TextSpan(
+              style: new TextStyle(color: Colors.black),
+              text: points[i].shape.substring(0, 4));
+          TextPainter tp = new TextPainter(
+              text: span,
+              textAlign: TextAlign.left,
+              textDirection: TextDirection.ltr);
+          tp.layout();
+          tp.paint(canvas, (points[i].point + Offset(-15, 15)));
+        }
       }
     }
     for (int i = 0; i < places.length; ++i) {
