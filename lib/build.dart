@@ -1,6 +1,7 @@
 import 'dart:convert';
 // ignore: avoid_web_libraries_in_flutter
 import 'dart:html' as html;
+import 'dart:io';
 import 'dart:ui';
 import 'package:drawing_app/photonic_mapper.dart';
 import 'package:drawing_app/simulate_net.dart';
@@ -208,24 +209,25 @@ class BuildingState extends State<Building> {
 
   Widget buildPNShapeToolbar() {
     return Positioned(
-      top: 40.0,
-      left: 10.0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      top: 20.0,
+      left: 20.0,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
         children: [
           Divider(
             height: 20.0,
           ),
-          buildStateButton(circuitPage),
-          buildShapeButton("Place"),
-          buildShapeButton("Transition"),
-          buildShapeButton("Arc"),
-          buildShapeButton("DynamicArc"),
-          buildShapeButton("1sec Transition"),
-          buildShapeButton("2sec Transition"),
-          buildShapeButton("Token"),
-          buildShapeButton("Delete"),
+          Text("Petri-Nets\nResearch\nSoftware"),
+          // buildStateButton(circuitPage),
+          buildShapeButton("Place", "assets/place.png"),
+          buildShapeButton("Transition", "assets/transition.png"),
+          buildShapeButton("Arc", "assets/arc.png"),
+          buildShapeButton("DynamicArc", "assets/dynamicArc.png"),
+          buildShapeButton("1sec Transition", "assets/transition.png"),
+          buildShapeButton("2sec Transition", "assets/transition.png"),
+          buildShapeButton("Token", "assets/place.png"),
+          buildShapeButton("Delete", "assets/delete.png"),
           buildSimulateButton("Simulate"),
           buildSaveButton("Save"),
           buildUploadButton("Upload"),
@@ -323,22 +325,36 @@ class BuildingState extends State<Building> {
     );
   }
 
-  Widget buildShapeButton(String string) {
+  Widget buildShapeButton(String string, String imgPath) {
     return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: FloatingActionButton(
-        mini: false,
-        backgroundColor: Colors.black,
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: Container(
-          child: Text(string, style: TextStyle(fontSize: 8)),
-        ),
-        onPressed: () {
-          setState(() {
-            selectedShape = string;
-          });
-        },
-      ),
-    );
+          width: 75,
+          child: Column(children: [
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.white),
+                  side: MaterialStateProperty.all(
+                      BorderSide(width: 1, color: Colors.black))),
+              child: Container(
+                  child: Column(children: [
+                Image.asset(
+                  imgPath,
+                  width: 50,
+                  height: 50,
+                ),
+              ])),
+              onPressed: () {
+                setState(() {
+                  selectedShape = string;
+                });
+              },
+            ),
+            Text(string,
+                textAlign: TextAlign.center,
+                style: TextStyle(fontSize: 12, color: Colors.black)),
+          ]),
+        ));
   }
 
   Widget buildGraphButton(String string) {
