@@ -30,6 +30,8 @@ class BuildingState extends State<Building> {
   List<DrawnLabel> drawnLabels = <DrawnLabel>[];
   List<Place> drawnOutputPlaces = [];
   DrawnArc currentArc = DrawnArc(Offset.zero, Offset.zero, Colors.black, 1);
+  TextEditingController arcWeightController = TextEditingController();
+  TextEditingController transitionTimeController = TextEditingController();
   Color selectedColor = Colors.black;
   String selectedShape = '';
   late String selectedPhotonicShape;
@@ -60,6 +62,7 @@ class BuildingState extends State<Building> {
             backgroundColor: Colors.white,
             body: Stack(clipBehavior: Clip.none, children: [
               buildHoverJunction(context, x, y),
+              topBar(context),
               buildPhotonicShapeToolbar()
             ]),
           )
@@ -71,9 +74,21 @@ class BuildingState extends State<Building> {
               buildAllPoints(context),
               buildAllArcs(context),
               buildCurrentArc(context),
+              topBar(context),
+              buildSaveUpload(),
               buildPNShapeToolbar(),
             ]),
           );
+  }
+
+  Widget topBar(context) {
+    return Container(
+      decoration: BoxDecoration(
+          color: Colors.white,
+          boxShadow: [BoxShadow(color: Colors.black45, blurRadius: 8)]),
+      width: MediaQuery.of(context).size.width,
+      height: 110,
+    );
   }
 
   Widget buildHoverJunction(BuildContext context, x, y) {
@@ -207,6 +222,16 @@ class BuildingState extends State<Building> {
     );
   }
 
+  Widget buildSaveUpload() {
+    return Positioned(
+        top: 22,
+        right: 20,
+        child: Column(children: [
+          buildSaveButton("Save", "assets/save.png"),
+          buildUploadButton("Upload", "assets/upload.png"),
+        ]));
+  }
+
   Widget buildPNShapeToolbar() {
     return Positioned(
       top: 20.0,
@@ -214,115 +239,173 @@ class BuildingState extends State<Building> {
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
         children: [
-          Divider(
-            height: 20.0,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 14, 0),
+            child: Text(
+              "Petri-Nets\nResearch\nSoftware",
+              style: TextStyle(fontSize: 20),
+            ),
           ),
-          Text("Petri-Nets\nResearch\nSoftware"),
-          // buildStateButton(circuitPage),
+          buildStateButton(circuitPage, "assets/pnTool.png"),
           buildShapeButton("Place", "assets/place.png"),
           buildShapeButton("Transition", "assets/transition.png"),
           buildShapeButton("Arc", "assets/arc.png"),
           buildShapeButton("DynamicArc", "assets/dynamicArc.png"),
-          buildShapeButton("1sec Transition", "assets/transition.png"),
-          buildShapeButton("2sec Transition", "assets/transition.png"),
+          buildShapeButton("InhibitorArc", "assets/inhibitorArc.png"),
+          buildShapeButton("Timed Transition", "assets/transition.png"),
           buildShapeButton("Token", "assets/place.png"),
           buildShapeButton("Delete", "assets/delete.png"),
-          buildSimulateButton("Simulate"),
-          buildSaveButton("Save"),
-          buildUploadButton("Upload"),
-          buildGraphButton("ShowGraph")
+          buildSimulateButton("Simulate", "assets/simulate.png"),
+          Column(crossAxisAlignment: CrossAxisAlignment.start, children: [
+            buildTextInput("Arc Weight", arcWeightController),
+            buildTextInput("Transition Time", transitionTimeController)
+          ]),
+          // buildGraphButton("ShowGraph")
         ],
       ),
     );
+  }
+
+  Widget buildTextInput(String element, TextEditingController controller) {
+    return Row(crossAxisAlignment: CrossAxisAlignment.end, children: [
+      Padding(
+          padding: EdgeInsets.fromLTRB(0, 5, 12, 0),
+          child: Text(
+            element,
+            textAlign: TextAlign.left,
+          )),
+      Container(
+          width: 15,
+          height: 25,
+          child: TextField(
+            controller: controller,
+            onChanged: (value) => controller.text = value,
+          ))
+    ]);
   }
 
   Widget buildPhotonicShapeToolbar() {
     return Positioned(
-      top: 40.0,
-      left: 10.0,
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.center,
+      top: 20.0,
+      left: 20.0,
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
         mainAxisAlignment: MainAxisAlignment.start,
+        mainAxisSize: MainAxisSize.max,
         children: [
-          Divider(
-            height: 20.0,
+          Padding(
+            padding: const EdgeInsets.fromLTRB(0, 0, 14, 0),
+            child: Text(
+              "Petri-Nets\nResearch\nSoftware",
+              style: TextStyle(fontSize: 20),
+            ),
           ),
-          buildStateButton(circuitPage),
-          buildPhotonicShapeButton("4-Port"),
-          buildPhotonicShapeButton("3-Port"),
-          buildPhotonicShapeButton("2-Port"),
-          buildPhotonicShapeButton("Create PN")
+          buildStateButton(circuitPage, "assets/pnTool.png"),
+          buildPhotonicShapeButton("4-Port", "assets/4port.png"),
+          buildPhotonicShapeButton("3-Port", "assets/3port.png"),
+          buildPhotonicShapeButton("2-Port", "assets/2port.png"),
+          buildPhotonicShapeButton("Create PN", "assets/petrify.png")
         ],
       ),
     );
   }
 
-  Widget buildStateButton(bool circuitPage) {
+  Widget buildStateButton(bool circuitPage, String imgPath) {
     // the button for switching between PN and photonics pages.
     return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: FloatingActionButton(
-        mini: false,
-        backgroundColor: Colors.yellow,
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: Container(
-          child: Text(
-              (circuitPage == false) ? "Photoic-Circuit" : "Petri-Net Rep",
-              style: TextStyle(fontSize: 8, color: Colors.black)),
-        ),
-        onPressed: () {
-          if (circuitPage == false) {
-            setState(() {
-              this.circuitPage = true;
-            });
-          } else {
-            setState(() {
-              this.circuitPage = false;
-            });
-          }
-        },
-      ),
-    );
+          width: 75,
+          child: Column(children: [
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.white),
+                  side: MaterialStateProperty.all(
+                      BorderSide(width: 1, color: Colors.black))),
+              child: Padding(
+                padding: const EdgeInsets.fromLTRB(0, 10, 0, 10),
+                child: Text(
+                    (circuitPage == false)
+                        ? "Photoic-Circuit"
+                        : "Petri-Net Rep",
+                    style: TextStyle(fontSize: 12, color: Colors.black)),
+              ),
+              onPressed: () {
+                if (circuitPage == false) {
+                  setState(() {
+                    this.circuitPage = true;
+                  });
+                } else {
+                  setState(() {
+                    this.circuitPage = false;
+                  });
+                }
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+              child: Text(
+                  (circuitPage == false) ? "Photoic-Circuit" : "Petri-Net Rep",
+                  style: TextStyle(fontSize: 8, color: Colors.black)),
+            ),
+          ]),
+        ));
   }
 
-  Widget buildPhotonicShapeButton(String string) {
+  Widget buildPhotonicShapeButton(String string, String imgPath) {
     return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: FloatingActionButton(
-        mini: false,
-        backgroundColor: Colors.black,
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: Container(
-          child: Text(string, style: TextStyle(fontSize: 8)),
-        ),
-        onPressed: () async {
-          if (string != "Create PN") {
-            setState(() {
-              selectedPhotonicShape = string;
-            });
-          } else {
-            // run the create Photonic Simulation Map Function
-            var photonicMap = structPlotter(drawnJunctions);
-            final pnLayout = pnPlotter(photonicMap);
-            // Hand this off to the PN creation tool
-            await saveDialog(context);
-            final bytes = utf8.encode(jsonEncode(pnLayout));
-            final blob = html.Blob([bytes]);
-            final url = html.Url.createObjectUrlFromBlob(blob);
-            final anchor =
-                html.document.createElement('a') as html.AnchorElement
-                  ..href = url
-                  ..style.display = 'none'
-                  ..download = fileName + ".txt";
-            html.document.body!.children.add(anchor);
-            // download
-            anchor.click();
-            // cleanup
-            html.document.body!.children.remove(anchor);
-            html.Url.revokeObjectUrl(url);
-          }
-        },
-      ),
-    );
+          width: 75,
+          child: Column(children: [
+            ElevatedButton(
+                style: ButtonStyle(
+                    backgroundColor: MaterialStateProperty.all(Colors.white),
+                    side: MaterialStateProperty.all(
+                        BorderSide(width: 1, color: Colors.black))),
+                child: Container(
+                  child: Image.asset(
+                    imgPath,
+                    width: 50,
+                    height: 50,
+                  ),
+                ),
+                onPressed: () async {
+                  if (string == "Create PN") {
+                    // run the create Photonic Simulation Map Function
+                    var photonicMap = structPlotter(drawnJunctions);
+                    final pnLayout = pnPlotter(photonicMap);
+                    // Hand this off to the PN creation tool
+                    await saveDialog(context);
+                    final bytes = utf8.encode(jsonEncode(pnLayout));
+                    final blob = html.Blob([bytes]);
+                    final url = html.Url.createObjectUrlFromBlob(blob);
+                    final anchor =
+                        html.document.createElement('a') as html.AnchorElement
+                          ..href = url
+                          ..style.display = 'none'
+                          ..download = fileName + ".txt";
+                    html.document.body!.children.add(anchor);
+                    // download
+                    anchor.click();
+                    // cleanup
+                    html.document.body!.children.remove(anchor);
+                    html.Url.revokeObjectUrl(url);
+                  } else {
+                    setState(() {
+                      selectedPhotonicShape = string;
+                    });
+                  }
+                }),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+              child: Text(string,
+                  style: TextStyle(fontSize: 8, color: Colors.black)),
+            ),
+          ]),
+        ));
   }
 
   Widget buildShapeButton(String string, String imgPath) {
@@ -336,23 +419,23 @@ class BuildingState extends State<Building> {
                   backgroundColor: MaterialStateProperty.all(Colors.white),
                   side: MaterialStateProperty.all(
                       BorderSide(width: 1, color: Colors.black))),
-              child: Container(
-                  child: Column(children: [
-                Image.asset(
-                  imgPath,
-                  width: 50,
-                  height: 50,
-                ),
-              ])),
+              child: Image.asset(
+                imgPath,
+                width: 50,
+                height: 50,
+              ),
               onPressed: () {
                 setState(() {
                   selectedShape = string;
                 });
               },
             ),
-            Text(string,
-                textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 12, color: Colors.black)),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+              child: Text(string,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.black)),
+            ),
           ]),
         ));
   }
@@ -377,121 +460,147 @@ class BuildingState extends State<Building> {
     );
   }
 
-  Widget buildSimulateButton(String string) {
+  Widget buildSimulateButton(String string, String imgPath) {
     return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: FloatingActionButton(
-        mini: false,
-        backgroundColor: Colors.black,
+        padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
         child: Container(
-          child: Text(string, style: TextStyle(fontSize: 8)),
-        ),
-        onPressed: () {
-          const maxIterations = 1;
-          for (int i = 0; i < maxIterations; i++) {
-            // add in check for dead net.
-            drawnPlaces = simulateNet(drawnPlaces, drawnPoints, drawnArcs);
-          }
-          // horrible bit of code to update drawnOutputPlaces with the drawnPlaces token values.
-          drawnOutputPlaces = drawnPlaces
-              .where((element) =>
-                  drawnOutputPlaces
-                      .where(
-                          (outputPlace) => outputPlace.point == element.point)
-                      .length ==
-                  1)
-              .toList();
-          // now we can plot each histogram, as long as we can group the places into junctions.
+          width: 75,
+          child: Column(children: [
+            ElevatedButton(
+              style: ButtonStyle(
+                  backgroundColor: MaterialStateProperty.all(Colors.white),
+                  side: MaterialStateProperty.all(
+                      BorderSide(width: 1, color: Colors.black))),
+              child: Image.asset(
+                imgPath,
+                width: 50,
+                height: 50,
+              ),
+              onPressed: () {
+                drawnPlaces = simulateNet(drawnPlaces, drawnPoints, drawnArcs);
+                // horrible bit of code to update drawnOutputPlaces with the drawnPlaces token values.
+                drawnOutputPlaces = drawnPlaces
+                    .where((element) =>
+                        drawnOutputPlaces
+                            .where((outputPlace) =>
+                                outputPlace.point == element.point)
+                            .length ==
+                        1)
+                    .toList();
+                // now we can plot each histogram, as long as we can group the places into junctions.
 
-          // add in a function here to count output tokens in places.
-          setState(() {
-            drawnPlaces = drawnPlaces;
-            drawnPoints = drawnPoints;
-            drawnOutputPlaces = drawnOutputPlaces;
-          });
-        },
-      ),
+                // add in a function here to count output tokens in places.
+                setState(() {
+                  drawnPlaces = drawnPlaces;
+                  drawnPoints = drawnPoints;
+                  drawnOutputPlaces = drawnOutputPlaces;
+                });
+              },
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(0, 4, 0, 0),
+              child: Text(string,
+                  textAlign: TextAlign.center,
+                  style: TextStyle(fontSize: 12, color: Colors.black)),
+            ),
+          ]),
+        ));
+  }
+
+  Widget buildSaveButton(String string, String imgPath) {
+    return Padding(
+      padding: const EdgeInsets.fromLTRB(10, 0, 10, 0),
+      child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        Text(string, style: TextStyle(fontSize: 12, color: Colors.black)),
+        ElevatedButton(
+          style: ButtonStyle(
+              shadowColor: MaterialStateProperty.all(Colors.transparent),
+              backgroundColor: MaterialStateProperty.all(Colors.white)),
+          child: Image.asset(
+            imgPath,
+            width: 25,
+            height: 25,
+          ),
+          onPressed: () async {
+            // save the PN to a file.
+            Map<String, dynamic> stringDrawnPoints = {
+              "transitions": json.encode(drawnPoints),
+              "places": json.encode(drawnPlaces),
+              "arcs": json.encode(drawnArcs)
+            };
+            // prepare
+            await saveDialog(context);
+            final bytes = utf8.encode(jsonEncode(stringDrawnPoints));
+            final blob = html.Blob([bytes]);
+            final url = html.Url.createObjectUrlFromBlob(blob);
+            final anchor =
+                html.document.createElement('a') as html.AnchorElement
+                  ..href = url
+                  ..style.display = 'none'
+                  ..download = fileName + ".txt";
+            html.document.body!.children.add(anchor);
+            // download
+            anchor.click();
+            // cleanup
+            html.document.body!.children.remove(anchor);
+            html.Url.revokeObjectUrl(url);
+          },
+        ),
+      ]),
     );
   }
 
-  Widget buildSaveButton(String string) {
+  Widget buildUploadButton(String string, String imgPath) {
     return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: FloatingActionButton(
-        mini: false,
-        backgroundColor: Colors.green,
-        child: Container(
-          child: Text(string, style: TextStyle(fontSize: 8)),
-        ),
-        onPressed: () async {
-          // save the PN to a file.
-          Map<String, dynamic> stringDrawnPoints = {
-            "transitions": json.encode(drawnPoints),
-            "places": json.encode(drawnPlaces),
-            "arcs": json.encode(drawnArcs)
-          };
-          // prepare
-          await saveDialog(context);
-          final bytes = utf8.encode(jsonEncode(stringDrawnPoints));
-          final blob = html.Blob([bytes]);
-          final url = html.Url.createObjectUrlFromBlob(blob);
-          final anchor = html.document.createElement('a') as html.AnchorElement
-            ..href = url
-            ..style.display = 'none'
-            ..download = fileName + ".txt";
-          html.document.body!.children.add(anchor);
-          // download
-          anchor.click();
-          // cleanup
-          html.document.body!.children.remove(anchor);
-          html.Url.revokeObjectUrl(url);
-        },
-      ),
-    );
-  }
-
-  Widget buildUploadButton(String string) {
-    return Padding(
-      padding: const EdgeInsets.all(4.0),
-      child: FloatingActionButton(
-        mini: false,
-        backgroundColor: Colors.green,
-        child: Container(
-          child: Text(string, style: TextStyle(fontSize: 8)),
-        ),
-        onPressed: () async {
-          if (kIsWeb) {
-            FilePickerResult? result = await FilePicker.platform.pickFiles();
-            String? fileBytes =
-                new String.fromCharCodes(result!.files.first.bytes!.toList());
-            Map<String, dynamic> data = jsonDecode(fileBytes);
-            var transitions = jsonDecode(data["transitions"] ??= "[]");
-            var places = jsonDecode(data["places"] ??= "[]");
-            var outputPlaces = jsonDecode(data["outputPlaces"] ??= "[]");
-            var arcs = jsonDecode(data["arcs"] ??= "[]");
-            var labels = jsonDecode(data["labels"] ??= "[]");
-            List<DrawnPoint> fileDrawnPoints = List.generate(transitions.length,
-                (index) => DrawnPoint.fromJson(transitions[index]));
-            List<Place> fileOutputPlaces = List.generate(outputPlaces.length,
-                (index) => Place.fromJson(outputPlaces[index]));
-            List<Place> fileDrawnPlace = List.generate(
-                places.length, (index) => Place.fromJson(places[index]));
-            List<DrawnArc> fileDrawnArc = List.generate(
-                arcs.length, (index) => DrawnArc.fromJson(arcs[index]));
-            List<DrawnLabel> fileDrawnLabels = List.generate(
-                labels.length, (index) => DrawnLabel.fromJson(labels[index]));
-            setState(() {
-              drawnPoints = fileDrawnPoints;
-              drawnOutputPlaces = fileOutputPlaces;
-              drawnPlaces = fileDrawnPlace;
-              drawnArcs = fileDrawnArc;
-              drawnLabels = fileDrawnLabels;
-              /*currentDiffMatrix = differenceMatrixBuilder(
+      padding: const EdgeInsets.fromLTRB(10, 0, 20, 0),
+      child: Row(mainAxisAlignment: MainAxisAlignment.end, children: [
+        Text(string,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 12, color: Colors.black)),
+        ElevatedButton(
+          style: ButtonStyle(
+              shadowColor: MaterialStateProperty.all(Colors.transparent),
+              backgroundColor: MaterialStateProperty.all(Colors.white)),
+          child: Image.asset(
+            imgPath,
+            width: 25,
+            height: 25,
+          ),
+          onPressed: () async {
+            if (kIsWeb) {
+              FilePickerResult? result = await FilePicker.platform.pickFiles();
+              String? fileBytes =
+                  new String.fromCharCodes(result!.files.first.bytes!.toList());
+              Map<String, dynamic> data = jsonDecode(fileBytes);
+              var transitions = jsonDecode(data["transitions"] ??= "[]");
+              var places = jsonDecode(data["places"] ??= "[]");
+              var outputPlaces = jsonDecode(data["outputPlaces"] ??= "[]");
+              var arcs = jsonDecode(data["arcs"] ??= "[]");
+              var labels = jsonDecode(data["labels"] ??= "[]");
+              List<DrawnPoint> fileDrawnPoints = List.generate(
+                  transitions.length,
+                  (index) => DrawnPoint.fromJson(transitions[index]));
+              List<Place> fileOutputPlaces = List.generate(outputPlaces.length,
+                  (index) => Place.fromJson(outputPlaces[index]));
+              List<Place> fileDrawnPlace = List.generate(
+                  places.length, (index) => Place.fromJson(places[index]));
+              List<DrawnArc> fileDrawnArc = List.generate(
+                  arcs.length, (index) => DrawnArc.fromJson(arcs[index]));
+              List<DrawnLabel> fileDrawnLabels = List.generate(
+                  labels.length, (index) => DrawnLabel.fromJson(labels[index]));
+              setState(() {
+                drawnPoints = fileDrawnPoints;
+                drawnOutputPlaces = fileOutputPlaces;
+                drawnPlaces = fileDrawnPlace;
+                drawnArcs = fileDrawnArc;
+                drawnLabels = fileDrawnLabels;
+                /*currentDiffMatrix = differenceMatrixBuilder(
                   selectedShape, drawnArcs, drawnPoints, drawnPlaces);*/
-            });
-          }
-        },
-      ),
+              });
+            }
+          },
+        )
+      ]),
     );
   }
 
@@ -499,10 +608,12 @@ class BuildingState extends State<Building> {
     RenderBox? box = context.findRenderObject() as RenderBox;
     Offset point = box.globalToLocal(details.globalPosition);
     point = (point ~/ 25) * 25;
+    final isInhibitor = selectedShape.contains("Inhibitor");
     if (selectedShape.contains("Arc")) {
       if (conflictTesting(point, drawnPoints, drawnPlaces) != "freeSpace") {
         setState(() {
-          currentArc = DrawnArc(point, point + Offset(5, 5), selectedColor, 1);
+          currentArc = DrawnArc(point, point + Offset(5, 5), selectedColor, 1,
+              isInhibitor: isInhibitor);
         });
       } else {
         currentArc = DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor, 1);
@@ -519,16 +630,11 @@ class BuildingState extends State<Building> {
     }
     if (selectedShape.contains("Transition")) {
       if (conflictTesting(point, drawnPoints, drawnPlaces) == "freeSpace") {
-        var timeConstraint = 0;
-        if (selectedShape.contains("1sec")) {
-          timeConstraint = 1;
-        } else if (selectedShape.contains("2sec")) {
-          timeConstraint = 2;
-        }
+        var timeConstraint = num.tryParse(transitionTimeController.text);
         setState(() {
           drawnPoints = List.from(drawnPoints)
             ..add(DrawnPoint(point, selectedShape, selectedColor,
-                time: timeConstraint));
+                time: timeConstraint ?? 0));
         });
       }
     }
@@ -548,73 +654,33 @@ class BuildingState extends State<Building> {
       RenderBox? box = context.findRenderObject() as RenderBox;
       Offset point = box.globalToLocal(details.globalPosition);
       point = (point ~/ 25) * 25;
+      final isInhibitor = selectedShape.contains("Inhibitor");
       setState(() {
-        currentArc = DrawnArc(currentArc.point1, point, selectedColor, 1);
+        currentArc = DrawnArc(currentArc.point1, point, selectedColor, 1,
+            isInhibitor: isInhibitor);
       });
     }
   }
 
-  TextEditingController _textFieldController = TextEditingController();
-  late String valueText;
-  late num codeDialog;
-  displayArcDialog(BuildContext context) async {
-    return showDialog(
-        context: context,
-        builder: (context) {
-          return AlertDialog(
-            title: Text('Arc Weight'),
-            content: TextField(
-              onChanged: (value) {
-                setState(() {
-                  valueText = value;
-                });
-              },
-              controller: _textFieldController,
-              decoration: InputDecoration(hintText: "Input arc weight"),
-            ),
-            actions: <Widget>[
-              TextButton(
-                child: Text('CANCEL'),
-                onPressed: () {
-                  setState(() {
-                    codeDialog = 0;
-                    Navigator.pop(context);
-                  });
-                },
-              ),
-              TextButton(
-                child: Text('OK'),
-                onPressed: () {
-                  setState(() {
-                    codeDialog = num.parse(valueText);
-                    Navigator.pop(context);
-                  });
-                },
-              ),
-            ],
-          );
-        });
-  }
-
   void onPanEnd(details) async {
     if (selectedShape.contains("Arc")) {
+      final isInhibitor = selectedShape.contains("Inhibitor");
+      final isDynamic = selectedShape.contains("Dynamic");
       try {
         final conflictTest =
             conflictTesting(currentArc.point2, drawnPoints, drawnPlaces);
         if (conflictTest != "freeSpace") {
-          if (selectedShape == "Arc") {
-            await displayArcDialog(context);
-            // codeDialog = 1;
-            if (codeDialog == 0) {
-              return;
-            } else {
-              currentArc = DrawnArc(currentArc.point1, currentArc.point2,
-                  selectedColor, codeDialog);
-            }
+          final weight = num.tryParse(arcWeightController.text);
+          if (weight == null) {
+            setState(() {
+              currentArc =
+                  DrawnArc(Offset(0, 0), Offset(0, 0), selectedColor, 1);
+            });
+            return;
           } else {
             currentArc = DrawnArc(
-                currentArc.point1, currentArc.point2, selectedColor, 1,
-                isDynamic: true);
+                currentArc.point1, currentArc.point2, selectedColor, weight,
+                isInhibitor: isInhibitor, isDynamic: isDynamic);
           }
           setState(() {
             drawnArcs = List.from(drawnArcs)..add(currentArc);

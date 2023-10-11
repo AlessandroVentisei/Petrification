@@ -50,6 +50,14 @@ flutter:
     - assets/delete.png
     - assets/dynamicArc.png
     - assets/arc.png
+    - assets/simulate.png
+    - assets/save.png
+    - assets/upload.png
+    - assets/inhibitorArc.png
+    - assets/2port.png
+    - assets/3port.png
+    - assets/4port.png
+    - assets/petrify.png
 
   # The following line ensures that the Material Icons font is
   # included with your application, so that you can use the icons in

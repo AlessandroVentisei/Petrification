@@ -33,10 +33,17 @@ List<List<double>> differenceMatrixBuilder(
               return 0.0;
             }
           }));
-
+  double x = 1.0;
   for (int i = 0; i < drawnArcs.length; i++) {
-    differenceMatrixBuilderCurrentArc(objectMatrix, drawnPoints, drawnPlaces,
-        drawnArcs[i], diffMatrixPlus, diffMatrixMinus, marking);
+    [diffMatrixMinus, diffMatrixPlus, x] = differenceMatrixBuilderCurrentArc(
+        objectMatrix,
+        drawnPoints,
+        drawnPlaces,
+        drawnArcs[i],
+        diffMatrixPlus,
+        diffMatrixMinus,
+        marking,
+        x);
   }
 
   List<List<double>> diffMatrix = List.generate(
@@ -53,21 +60,30 @@ List<dynamic> differenceMatrixBuilderCurrentArc(
     DrawnArc currentArc,
     List<List<num>> diffMatrixPlus,
     List<List<num>> diffMatrixMinus,
-    List<double> marking) {
+    List<double> marking,
+    double x) {
   List<dynamic> loc;
   //This function will first compare the current arc to drawn places to find points connected.
   //currentArc.point1 must = a drawnPoints.point
   loc = pointFinder(drawnPoints, drawnPlaces, currentArc);
   if (loc[2] == "Place") {
-    if (!currentArc.isDynamic) {
-      diffMatrixMinus[loc[0]][loc[1]] =
-          diffMatrixMinus[loc[0]][loc[1]] + currentArc.weight;
-    } else {
+    if (currentArc.isDynamic) {
       if (marking[loc[0]] == 0) {
         diffMatrixMinus[loc[0]][loc[1]] = 1;
       } else {
         diffMatrixMinus[loc[0]][loc[1]] = marking[loc[0]];
+        x = marking[loc[0]];
       }
+    } else if (currentArc.isInhibitor) {
+      // inhibitor logic
+      if (marking[loc[0]] == 0) {
+        diffMatrixMinus[loc[0]][loc[1]] = 0;
+      } else {
+        diffMatrixMinus[loc[0]][loc[1]] = 100;
+      }
+    } else {
+      diffMatrixMinus[loc[0]][loc[1]] =
+          diffMatrixMinus[loc[0]][loc[1]] + currentArc.weight;
     }
   }
   if (loc[2] == "Transition") {
@@ -75,10 +91,11 @@ List<dynamic> differenceMatrixBuilderCurrentArc(
       diffMatrixPlus[loc[1]][loc[0]] =
           diffMatrixPlus[loc[1]][loc[0]] + currentArc.weight;
     } else {
-      diffMatrixPlus[loc[1]][loc[0]] = 1;
+      // this is where we'll need to set shared variable arc weights
+      diffMatrixPlus[loc[1]][loc[0]] = x;
     }
   }
-  return [diffMatrixMinus, diffMatrixPlus];
+  return [diffMatrixMinus, diffMatrixPlus, x];
 }
 
 List<dynamic> pointFinder(drawnPoints, drawnPlaces, currentArc) {

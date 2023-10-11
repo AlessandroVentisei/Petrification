@@ -45,7 +45,7 @@ class Sketcher extends CustomPainter {
         if (points[i].shape != "Transition") {
           TextSpan span = new TextSpan(
               style: new TextStyle(color: Colors.black),
-              text: points[i].shape.substring(0, 4));
+              text: points[i].time.toString());
           TextPainter tp = new TextPainter(
               text: span,
               textAlign: TextAlign.left,
@@ -233,6 +233,10 @@ class ArcSketcher extends CustomPainter {
           .translate(arcs[i].point1.dx, arcs[i].point1.dy);
       // move to that point.
       path.lineTo(lineTo.dx, lineTo.dy);
+      if (arcs[i].isInhibitor) {
+        canvas.drawCircle(lineTo, 6, paint..style = PaintingStyle.fill);
+        paint..style = PaintingStyle.stroke;
+      }
       path = ArrowPath.make(path: path, tipLength: 5);
       TextSpan span = new TextSpan(
           style: new TextStyle(color: Colors.black),
